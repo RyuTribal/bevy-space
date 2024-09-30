@@ -161,11 +161,21 @@ fn alien_movement(time: Res<Time>, mut aliens: Query<(&mut Alien, &mut Transform
     }
 }
 
+// #[derive(Component)]
+// struct HitBox {
+//     rect: Rect,
+// }
+
 fn hit_detection(
     mut commands: Commands,
     alien_query: Query<(Entity, &Transform), With<Alien>>,
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
+    mut bunker_query: Query<(Entity, &mut Bunker, &Transform)>,
 ) {
+    fn in_rect(point: &Transform, target: &Transform, width: f32, height: f32) -> bool {
+        let rect = Rect::from_center_size(target, (width, height).into());
+        rect.contains(point)
+    }
     // get lazer singleton
     let mut lazer_iterator = lazer_query.iter_mut();
     let (mut lazer, lazer_transform) = lazer_iterator.next().unwrap();
@@ -175,6 +185,10 @@ fn hit_detection(
         let lazer_x = lazer_transform.translation.x;
         let lazer_y = lazer_transform.translation.y;
 
+        // check bunkers
+        for (entity, bunker, transform) in bunker_query {}
+
+        // check aliens
         for (entity, enemy_transform) in alien_query.iter() {
             let x = enemy_transform.translation.x;
             let y = enemy_transform.translation.y;
@@ -184,7 +198,12 @@ fn hit_detection(
             let y_range = (y - HALF_H)..(y + HALF_H);
 
             // Collision check
-            if x_range.contains(&lazer_x) && (y_range.contains(&lazer_y)) {
+            if in_rect(
+                lazer_transform,
+                enemy_transform,
+                ALIENS_WIDTH,
+                ALIENS_HEIGHT,
+            ) {
                 println!(
                     "hit at x {}, y {}, lazer_x {}, lazer_y {}, x_range {:?}, y_range {:?}",
                     x, y, lazer_x, lazer_y, x_range, y_range
@@ -193,17 +212,29 @@ fn hit_detection(
                 *lazer = Lazer::Idle;
                 break; // ensure only one hit
             }
+            // let x = enemy_transform.translation.x;
+            // let y = enemy_transform.translation.y;
+
+            // // hit box
+            // let x_range = (x - HALF_W)..(x + HALF_W);
+            // let y_range = (y - HALF_H)..(y + HALF_H);
+
+            // // Collision check
+            // if x_range.contains(&lazer_x) && (y_range.contains(&lazer_y)) {
+            //     println!(
+            //         "hit at x {}, y {}, lazer_x {}, lazer_y {}, x_range {:?}, y_range {:?}",
+            //         x, y, lazer_x, lazer_y, x_range, y_range
+            //     );
+            //     commands.entity(entity).despawn();
+            //     *lazer = Lazer::Idle;
+            //     break; // ensure only one hit
+            // }
         }
     }
 }
 
 #[derive(Component)]
-struct Defense(u8); // index in sprite atlas
-
-#[derive(Component)]
-struct HitBox {
-    rect: Rect,
-}
+struct Bunker(u8); // index in sprite atlas
 
 fn setup(
     mut commands: Commands,
@@ -274,7 +305,7 @@ fn setup(
         for (r, row) in bunker_matrix.iter().enumerate() {
             for (c, data) in row.iter().enumerate() {
                 bunker.push((
-                    Defense(*data as u8),
+                    Bunker(*data as u8),
                     SpriteBundle {
                         transform: Transform::from_xyz(
                             (c as f32 - (row.len() as f32 - 1.0) / 2.0) * 16.0

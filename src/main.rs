@@ -41,11 +41,13 @@ enum Lazer {
 
 /// keyboard input
 fn keyboard_input_system(
+    mut commands: Commands,
+    bullet: Res<Bullet>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut direction_match: Query<&mut Player>,
-    mut lazer_match: Query<&mut Lazer>,
+    mut player_query: Query<&mut Player>,
+    mut lazer_query: Query<&mut Lazer>,
 ) {
-    for mut direction in &mut direction_match {
+    for mut direction in &mut player_query {
         let mut new_direction = Player::None;
         if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
             new_direction = Player::Left;
@@ -56,13 +58,22 @@ fn keyboard_input_system(
         *direction = new_direction;
     }
 
-    for mut lazer in &mut lazer_match {
+    for mut lazer in &mut lazer_query {
         if *lazer == Lazer::Idle
             && (keyboard_input.just_pressed(KeyCode::Space)
                 || keyboard_input.pressed(KeyCode::ArrowUp))
         {
             *lazer = Lazer::Fire;
         }
+    }
+
+    if keyboard_input.just_pressed(KeyCode::KeyS) {
+        println!("S");
+        commands.spawn(SpriteBundle {
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            texture: bullet.texture_handler.clone(),
+            ..default()
+        });
     }
 }
 
@@ -152,6 +163,7 @@ fn alien_movement(time: Res<Time>, mut aliens: Query<(&mut Alien, &mut Transform
         }
     }
 
+    // set new direction for all aliens
     if let Some(direction) = new_direction {
         for (mut alien, mut transform) in &mut aliens {
             transform.translation.y -= ALIEN_SIZE.y;
@@ -210,6 +222,11 @@ fn hit_detection(
             }
         }
     }
+}
+
+#[derive(Resource)]
+struct Bullet {
+    texture_handler: Handle<Image>,
 }
 
 fn setup(
@@ -302,6 +319,10 @@ fn setup(
         }
         commands.spawn_batch(bunker);
     }
+
+    // Loads bullet sprite
+    let texture_handler: Handle<Image> = asset_server.load("sprites/drop.png");
+    commands.insert_resource(Bullet { texture_handler });
 }
 
 fn main() {
