@@ -165,7 +165,6 @@ fn hit_detection(
     if *lazer == Lazer::Fired {
         let lazer_x = lazer_transform.translation.x;
         let lazer_y = lazer_transform.translation.y;
-        println!("lazer_x {}, lazer_y {}", lazer_x, lazer_y);
 
         for (entity, enemy_transform) in alien_query.iter() {
             let x = enemy_transform.translation.x;
@@ -189,7 +188,11 @@ fn hit_detection(
     }
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
     // we might want to setup a custom camera, for now just default
     commands.spawn(Camera2dBundle::default());
     commands.spawn((
@@ -211,7 +214,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
     ));
 
-    // Builds and spawns the sprites
+    // Builds and spawns the Alien sprites
     let sprite_handle = asset_server.load("sprites/alien.png");
 
     let mut aliens = vec![];
@@ -236,6 +239,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         }
     }
     commands.spawn_batch(aliens);
+
+    // Builds and spawns the Defense spites
+    // let texture = asset_server.load("sprites/defense.png");
+    let layout = TextureAtlasLayout::from_grid(UVec2::splat(16), 4, 2, None, None);
 }
 
 fn main() {
@@ -250,8 +257,8 @@ fn main() {
                 player_movement,
                 lazer_movement,
                 alien_movement,
-            )
-                .chain(), // all systems in sequential order to keep it simple
+            ), // now all systems parallel
+               // .chain(), // all systems in sequential order to keep it simple
         )
         .run();
 }
