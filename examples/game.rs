@@ -18,12 +18,15 @@ enum Direction {
 struct Player;
 
 #[derive(Component)]
-struct Lazer;
+struct Lazer {
+    is_fired: bool,
+}
 
 /// keyboard input
 fn keyboard_input_system(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut direction_match: Query<&mut Direction>,
+    mut lazer_match: Query<&mut Lazer>,
 ) {
     for mut direction in &mut direction_match {
         let mut new_direction = Direction::None;
@@ -35,11 +38,16 @@ fn keyboard_input_system(
             trace!("'D' / ->");
             new_direction = Direction::Right;
         }
-
         *direction = new_direction;
+    }
 
-        if keyboard_input.just_pressed(KeyCode::Space) || keyboard_input.pressed(KeyCode::ArrowUp) {
+    for mut lazer in &mut lazer_match {
+        if !lazer.is_fired
+            && (keyboard_input.just_pressed(KeyCode::Space)
+                || keyboard_input.pressed(KeyCode::ArrowUp))
+        {
             info!("' ' ^");
+            lazer.is_fired = true;
         }
     }
 }
@@ -61,7 +69,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             transform: Transform::from_xyz(0., SCENE_HEIGHT, 0.),
             ..default()
         },
-        Lazer,
+        Lazer { is_fired: false },
     ));
 
     commands.spawn((
