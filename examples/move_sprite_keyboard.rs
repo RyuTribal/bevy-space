@@ -7,12 +7,19 @@ const PLAYER_SPEED: f32 = 300.0;
 const SCENE_WIDTH: f32 = 400.0;
 const SCENE_HEIGHT: f32 = 300.0;
 
+#[derive(Component)]
+enum Direction {
+    Left,
+    Right,
+    None,
+}
+
 /// This system prints 'A' key state
 fn keyboard_input_system(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut direction: Query<&mut Direction>,
+    mut direction_match: Query<&mut Direction>,
 ) {
-    for (mut direction) in &mut direction {
+    for mut direction in &mut direction_match {
         let mut new_direction = Direction::None;
         if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
             info!("'A' / <-");
@@ -29,21 +36,6 @@ fn keyboard_input_system(
             info!("' ' ^");
         }
     }
-}
-
-fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, setup)
-        .add_systems(Update, (keyboard_input_system, sprite_movement))
-        .run();
-}
-
-#[derive(Component)]
-enum Direction {
-    Left,
-    Right,
-    None,
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -85,4 +77,12 @@ fn sprite_movement(time: Res<Time>, mut sprite_position: Query<(&mut Direction, 
             Direction::None => {}
         }
     }
+}
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_systems(Startup, setup)
+        .add_systems(Update, (keyboard_input_system, sprite_movement))
+        .run();
 }
