@@ -1,21 +1,30 @@
 //! Renders a 2D scene containing a single, moving sprite.
 //! RUST_LOG="game=info" cargo run --example game
 
-use bevy::prelude::*;
+use bevy::{prelude::*, window::WindowResolution};
 
-const PLAYER_SPEED: f32 = 300.0;
+// vintage television format
+const RES_Y: f32 = 1080.0; // well a bit too modern
+const RES_X: f32 = RES_Y * 4.0 / 3.0;
+
+const PLAYER_SPEED: f32 = 500.0;
 const PLAYER_HEIGHT: f32 = 50.0; // There should be a way to get this from sprite
-const LAZER_SPEED: f32 = 500.0;
-const SCENE_WIDTH: f32 = 600.0;
-const SCENE_HEIGHT: f32 = 300.0;
+const LAZER_SPEED: f32 = 1000.0;
+
+const SCENE_WIDTH: f32 = RES_X / 2.0 - 100.0;
+const SCENE_HEIGHT: f32 = RES_Y / 2.0 - 50.0;
 const ALIENS_COL: usize = 11;
 const ALIENS_ROW: usize = 5;
-const ALIENS_WIDTH: f32 = 70.0; // used for hit box
+const ALIENS_WIDTH: f32 = 64.0; // used for hit box
 const ALIENS_HEIGHT: f32 = 10.0; // used for hit box
 const ALIENS_SPACE: f32 = 80.0; // used for layout
 
 const HALF_W: f32 = ALIENS_WIDTH / 2.0;
 const HALF_H: f32 = ALIENS_HEIGHT / 2.0;
+
+const BUNKERS: usize = 5;
+const BUNKER_SPACE: f32 = SCENE_WIDTH / BUNKERS as f32;
+const BUNKERS_Y: f32 = 150.0;
 
 const ALIENS_SPEED: f32 = 30.0;
 
@@ -188,6 +197,14 @@ fn hit_detection(
     }
 }
 
+#[derive(Component)]
+struct Defense(u8); // index in sprite atlas
+
+#[derive(Component)]
+struct HitBox {
+    rect: Rect,
+}
+
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -207,7 +224,6 @@ fn setup(
         Lazer::Idle,
         SpriteBundle {
             texture: asset_server.load("sprites/lazer.png"),
-
             transform: Transform::from_xyz(0., SCENE_HEIGHT, 0.),
             visibility: Visibility::Hidden,
             ..default()
@@ -241,13 +257,55 @@ fn setup(
     commands.spawn_batch(aliens);
 
     // Builds and spawns the Defense spites
-    // let texture = asset_server.load("sprites/defense.png");
+    let texture = asset_server.load("sprites/defense.png");
     let layout = TextureAtlasLayout::from_grid(UVec2::splat(16), 4, 2, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
+    //
+    let bunker_matrix = [
+        [0, 1, 1, 1, 1, 2],
+        [1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1],
+    ];
+
+    for b in 0..BUNKERS {
+        let mut bunker = vec![];
+        for (r, row) in bunker_matrix.iter().enumerate() {
+            for (c, data) in row.iter().enumerate() {
+                bunker.push((
+                    Defense(*data as u8),
+                    SpriteBundle {
+                        transform: Transform::from_xyz(
+                            (c as f32 - (row.len() as f32 - 1.0) / 2.0) * 16.0
+                                + (2.0 * b as f32 - (BUNKERS as f32 - 1.0)) * BUNKER_SPACE,
+                            BUNKERS_Y - SCENE_HEIGHT - (r as f32) * 16.0,
+                            0.0,
+                        ),
+                        texture: texture.clone(),
+                        ..default()
+                    },
+                    TextureAtlas {
+                        layout: texture_atlas_layout.clone(),
+                        index: *data,
+                        ..default()
+                    },
+                ));
+            }
+        }
+        commands.spawn_batch(bunker);
+    }
 }
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                resolution: WindowResolution::new(RES_X, RES_Y),
+                ..default()
+            }),
+            ..default()
+        }))
         .add_systems(Startup, setup)
         .add_systems(
             Update,
