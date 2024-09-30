@@ -85,6 +85,7 @@ fn lazer_movement(
     mut lazer_position: Query<(&mut Lazer, &mut Visibility, &mut Transform), Without<Player>>,
 ) {
     let player_position = player_position.iter().next().unwrap();
+
     for (mut lazer, mut visibility, mut transform) in &mut lazer_position {
         match *lazer {
             Lazer::Fire => {
@@ -96,12 +97,13 @@ fn lazer_movement(
             Lazer::Fired => {
                 if transform.translation.y > SCENE_HEIGHT {
                     *lazer = Lazer::Idle;
-                    *visibility = Visibility::Hidden;
                 } else {
                     transform.translation.y += LAZER_SPEED * time.delta_seconds()
                 }
             }
-            _ => {}
+            _ => {
+                *visibility = Visibility::Hidden;
+            }
         }
     }
 }
@@ -146,30 +148,38 @@ fn alien_movement(time: Res<Time>, mut aliens: Query<(&mut Alien, &mut Transform
 
 fn hit_detection(
     mut commands: Commands,
-    enemy_query: Query<(Entity, &Transform), With<Alien>>,
-    lazer_query: Query<&Transform, With<Lazer>>,
+    alien_query: Query<(Entity, &Transform), With<Alien>>,
+    mut lazer_query: Query<(&mut Lazer, &Transform)>,
 ) {
-    let lazer_transform = lazer_query.iter().next().unwrap();
+    for (mut lazer, lazer_transform) in &mut lazer_query {
+        if *lazer == Lazer::Fired {
+            for (entity, enemy_transform) in alien_query.iter() {
+                let x = enemy_transform.translation.x;
+                let y = enemy_transform.translation.y;
+                let half_w = ALIENS_WIDTH / 2.0;
+                let half_h = ALIENS_HEIGHT / 2.0;
 
-    for (entity, enemy_transform) in enemy_query.iter() {
-        let x = enemy_transform.translation.x;
-        let y = enemy_transform.translation.y;
-        let half_w = ALIENS_WIDTH / 2.0;
-        let half_h = ALIENS_HEIGHT / 2.0;
+                let x_range = (x - half_w)..(x + half_w);
+                let y_range = (y - half_h)..(x + half_h);
 
-        let x_range = (x - half_w)..(x + half_w);
-        let y_range = (y - half_h)..(x + half_h);
+                let lazer_x = lazer_transform.translation.x;
+                let lazer_y = lazer_transform.translation.y;
 
-        let lazer_x = lazer_transform.translation.x;
-        let lazer_y = lazer_transform.translation.y;
-
-        // Your collision check
-        if x_range.contains(&lazer_x) && (y_range.contains(&lazer_y)) {
-            commands.entity(entity).despawn();
+                // Your collision check
+                if x_range.contains(&lazer_x) && (y_range.contains(&lazer_y)) {
+                    println!(
+                        "hit at x {}, y {}, lazer_x {}, lazer_y {}",
+                        x, y, lazer_x, lazer_y
+                    );
+                    commands.entity(entity).despawn();
+                    *lazer = Lazer::Idle; // ugg
+                }
+            }
         }
     }
 }
 
+// we might want to setup a camera as well.
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((
@@ -224,13 +234,15 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(
             Update,
-            (
-                keyboard_input_system,
-                player_movement,
-                lazer_movement,
-                alien_movement,
-                hit_detection,
-            ),
+            ((
+                keyboard_input_system, // first
+                (
+                    hit_detection,                                               // second
+                    (player_movement, (lazer_movement, alien_movement)).chain(), // 3rd in parallel
+                )
+                    .chain(),
+            )
+                .chain(),),
         )
         .run();
 }
