@@ -10,8 +10,12 @@ const SCENE_WIDTH: f32 = 600.0;
 const SCENE_HEIGHT: f32 = 300.0;
 const ALIENS_COL: usize = 11;
 const ALIENS_ROW: usize = 5;
-const ALIENS_WIDTH: f32 = 50.0;
-const ALIENS_HEIGHT: f32 = 50.0;
+const ALIENS_WIDTH: f32 = 70.0; // used for hit box
+const ALIENS_HEIGHT: f32 = 10.0; // used for hit box
+const ALIENS_SPACE: f32 = 80.0; // used for layout
+
+const HALF_W: f32 = ALIENS_WIDTH / 2.0;
+const HALF_H: f32 = ALIENS_HEIGHT / 2.0;
 
 const ALIENS_SPEED: f32 = 30.0;
 
@@ -38,11 +42,9 @@ fn keyboard_input_system(
     for mut direction in &mut direction_match {
         let mut new_direction = Player::None;
         if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
-            trace!("'A' / <-");
             new_direction = Player::Left;
         }
         if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
-            trace!("'D' / ->");
             new_direction = Player::Right;
         }
         *direction = new_direction;
@@ -53,7 +55,6 @@ fn keyboard_input_system(
             && (keyboard_input.just_pressed(KeyCode::Space)
                 || keyboard_input.pressed(KeyCode::ArrowUp))
         {
-            trace!("' ' ^");
             *lazer = Lazer::Fire;
         }
     }
@@ -162,31 +163,29 @@ fn hit_detection(
     assert!(lazer_iterator.next().is_none());
 
     if *lazer == Lazer::Fired {
-        let mut nr_checked = 0;
+        let lazer_x = lazer_transform.translation.x;
+        let lazer_y = lazer_transform.translation.y;
+        println!("lazer_x {}, lazer_y {}", lazer_x, lazer_y);
+
         for (entity, enemy_transform) in alien_query.iter() {
-            nr_checked += 1;
             let x = enemy_transform.translation.x;
             let y = enemy_transform.translation.y;
-            let half_w = ALIENS_WIDTH / 2.0;
-            let half_h = ALIENS_HEIGHT / 2.0;
 
-            let x_range = (x - half_w)..(x + half_w);
-            let y_range = (y - half_h)..(x + half_h);
+            // hit box
+            let x_range = (x - HALF_W)..(x + HALF_W);
+            let y_range = (y - HALF_H)..(y + HALF_H);
 
-            let lazer_x = lazer_transform.translation.x;
-            let lazer_y = lazer_transform.translation.y;
-
-            // Your collision check
+            // Collision check
             if x_range.contains(&lazer_x) && (y_range.contains(&lazer_y)) {
                 println!(
-                    "hit at x {}, y {}, lazer_x {}, lazer_y {}",
-                    x, y, lazer_x, lazer_y
+                    "hit at x {}, y {}, lazer_x {}, lazer_y {}, x_range {:?}, y_range {:?}",
+                    x, y, lazer_x, lazer_y, x_range, y_range
                 );
                 commands.entity(entity).despawn();
                 *lazer = Lazer::Idle;
+                break; // ensure only one hit
             }
         }
-        println!("nr_checked {}", nr_checked);
     }
 }
 
@@ -216,8 +215,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let sprite_handle = asset_server.load("sprites/alien.png");
 
     let mut aliens = vec![];
-    let step_x = 1.5 * ALIENS_WIDTH;
-    let step_y = 1.5 * ALIENS_HEIGHT;
+    let step_x = ALIENS_SPACE;
+    let step_y = ALIENS_SPACE;
     for y in 0..ALIENS_ROW {
         for x in 0..ALIENS_COL {
             aliens.push((
@@ -227,9 +226,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 SpriteBundle {
                     texture: sprite_handle.clone(),
                     transform: Transform::from_xyz(
-                        (x as f32 - ALIENS_COL as f32 / 2.) * step_x,
+                        (x as f32 - ALIENS_COL as f32 / 2.0) * step_x,
                         SCENE_HEIGHT - (y as f32 * step_y),
-                        0.,
+                        -1.0, // behind in scene
                     ),
                     ..Default::default()
                 },
@@ -245,15 +244,14 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(
             Update,
-            ((
-                keyboard_input_system, // first
-                (
-                    hit_detection,                                               // second
-                    (player_movement, (lazer_movement, alien_movement)).chain(), // 3rd in parallel
-                )
-                    .chain(),
+            (
+                keyboard_input_system,
+                hit_detection,
+                player_movement,
+                lazer_movement,
+                alien_movement,
             )
-                .chain(),),
+                .chain(), // all systems in sequential order to keep it simple
         )
         .run();
 }
