@@ -6,10 +6,14 @@ use bevy::prelude::*;
 const PLAYER_SPEED: f32 = 300.0;
 const PLAYER_HEIGHT: f32 = 50.0; // There should be a way to get this from sprite
 const LAZER_SPEED: f32 = 500.0;
-const SCENE_WIDTH: f32 = 400.0;
+const SCENE_WIDTH: f32 = 600.0;
 const SCENE_HEIGHT: f32 = 300.0;
 const ALIENS_COL: usize = 11;
 const ALIENS_ROW: usize = 5;
+const ALIENS_WIDTH: f32 = 50.0;
+const ALIENS_HEIGHT: f32 = 50.0;
+
+const ALIENS_SPEED: f32 = 30.0;
 
 #[derive(Component)]
 enum Player {
@@ -17,9 +21,6 @@ enum Player {
     Right,
     None,
 }
-
-// #[derive(Component)]
-// struct Player;
 
 #[derive(Component, PartialEq, Clone, Copy)]
 enum Lazer {
@@ -105,6 +106,44 @@ fn lazer_movement(
     }
 }
 
+#[derive(Clone, Copy)]
+enum Direction {
+    Left,
+    Right,
+}
+#[derive(Component)]
+struct Alien {
+    direction: Direction,
+}
+
+/// alien movement
+fn alien_movement(time: Res<Time>, mut aliens: Query<(&mut Alien, &mut Transform)>) {
+    let mut new_direction = None;
+    for (alien, mut transform) in &mut aliens {
+        match alien.direction {
+            Direction::Left => {
+                transform.translation.x -= ALIENS_SPEED * time.delta_seconds();
+                if transform.translation.x < -SCENE_WIDTH {
+                    new_direction = Some(Direction::Right);
+                }
+            }
+            Direction::Right => {
+                transform.translation.x += ALIENS_SPEED * time.delta_seconds();
+                if transform.translation.x > SCENE_WIDTH {
+                    new_direction = Some(Direction::Left);
+                }
+            }
+        }
+    }
+
+    if let Some(direction) = new_direction {
+        for (mut alien, mut transform) in &mut aliens {
+            transform.translation.y -= ALIENS_HEIGHT;
+            alien.direction = direction;
+        }
+    }
+}
+
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((
@@ -130,17 +169,25 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let sprite_handle = asset_server.load("sprites/alien.png");
 
     let mut aliens = vec![];
-    let step_x = 2.0 * SCENE_WIDTH / ALIENS_COL as f32;
-    for x in 0..ALIENS_COL {
-        aliens.push(SpriteBundle {
-            texture: sprite_handle.clone(),
-            transform: Transform::from_xyz(
-                (x as f32 - ALIENS_COL as f32 / 2.0) * step_x,
-                SCENE_HEIGHT,
-                0.,
-            ),
-            ..Default::default()
-        });
+    let step_x = 1.5 * ALIENS_WIDTH;
+    let step_y = 1.5 * ALIENS_HEIGHT;
+    for y in 0..ALIENS_ROW {
+        for x in 0..ALIENS_COL {
+            aliens.push((
+                Alien {
+                    direction: Direction::Right,
+                },
+                SpriteBundle {
+                    texture: sprite_handle.clone(),
+                    transform: Transform::from_xyz(
+                        (x as f32 - ALIENS_COL as f32 / 2.) * step_x,
+                        SCENE_HEIGHT - (y as f32 * step_y),
+                        0.,
+                    ),
+                    ..Default::default()
+                },
+            ));
+        }
     }
     commands.spawn_batch(aliens);
 }
@@ -151,7 +198,12 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(
             Update,
-            (keyboard_input_system, player_movement, lazer_movement),
+            (
+                keyboard_input_system,
+                player_movement,
+                lazer_movement,
+                alien_movement,
+            ),
         )
         .run();
 }
