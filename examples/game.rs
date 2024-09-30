@@ -144,15 +144,41 @@ fn alien_movement(time: Res<Time>, mut aliens: Query<(&mut Alien, &mut Transform
     }
 }
 
+fn hit_detection(
+    mut commands: Commands,
+    enemy_query: Query<(Entity, &Transform), With<Alien>>,
+    lazer_query: Query<&Transform, With<Lazer>>,
+) {
+    let lazer_transform = lazer_query.iter().next().unwrap();
+
+    for (entity, enemy_transform) in enemy_query.iter() {
+        let x = enemy_transform.translation.x;
+        let y = enemy_transform.translation.y;
+        let half_w = ALIENS_WIDTH / 2.0;
+        let half_h = ALIENS_HEIGHT / 2.0;
+
+        let x_range = (x - half_w)..(x + half_w);
+        let y_range = (y - half_h)..(x + half_h);
+
+        let lazer_x = lazer_transform.translation.x;
+        let lazer_y = lazer_transform.translation.y;
+
+        // Your collision check
+        if x_range.contains(&lazer_x) && (y_range.contains(&lazer_y)) {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((
+        Player::None,
         SpriteBundle {
             texture: asset_server.load("sprites/space.png"),
             transform: Transform::from_xyz(0., -SCENE_HEIGHT, 0.),
             ..default()
         },
-        Player::None,
     ));
     commands.spawn((
         Lazer::Idle,
@@ -203,6 +229,7 @@ fn main() {
                 player_movement,
                 lazer_movement,
                 alien_movement,
+                hit_detection,
             ),
         )
         .run();
