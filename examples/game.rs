@@ -17,7 +17,10 @@ enum Direction {
 #[derive(Component)]
 struct Player;
 
-/// This system prints 'A' key state
+#[derive(Component)]
+struct Lazer;
+
+/// keyboard input
 fn keyboard_input_system(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut direction_match: Query<&mut Direction>,
@@ -52,6 +55,15 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         Player,
         Direction::None,
     ));
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("sprites/lazer.png"),
+            transform: Transform::from_xyz(0., SCENE_HEIGHT, 0.),
+            ..default()
+        },
+        Lazer,
+    ));
+
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load("sprites/alien.png"),
