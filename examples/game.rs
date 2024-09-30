@@ -81,29 +81,34 @@ fn player_movement(time: Res<Time>, mut player: Query<(&mut Player, &mut Transfo
 /// lazer movement
 fn lazer_movement(
     time: Res<Time>,
-    player_position: Query<&Transform, With<Player>>,
+    player_query: Query<&Transform, With<Player>>,
     mut lazer_position: Query<(&mut Lazer, &mut Visibility, &mut Transform), Without<Player>>,
 ) {
-    let player_position = player_position.iter().next().unwrap();
+    // get a player_transform singleton
+    let mut player_iterator = player_query.iter();
+    let player_transform = player_iterator.next().unwrap();
+    assert!(player_iterator.next().is_none());
 
-    for (mut lazer, mut visibility, mut transform) in &mut lazer_position {
-        match *lazer {
-            Lazer::Fire => {
-                transform.translation =
-                    player_position.translation + Vec3::new(0.0, PLAYER_HEIGHT, 0.0);
-                *lazer = Lazer::Fired;
-                *visibility = Visibility::Visible;
+    let mut lazer_iterator = lazer_position.iter_mut();
+    let (mut lazer, mut visibility, mut transform) = lazer_iterator.next().unwrap();
+    assert!(lazer_iterator.next().is_none());
+
+    match *lazer {
+        Lazer::Fire => {
+            transform.translation =
+                player_transform.translation + Vec3::new(0.0, PLAYER_HEIGHT, 0.0);
+            *lazer = Lazer::Fired;
+            *visibility = Visibility::Visible;
+        }
+        Lazer::Fired => {
+            if transform.translation.y > SCENE_HEIGHT {
+                *lazer = Lazer::Idle;
+            } else {
+                transform.translation.y += LAZER_SPEED * time.delta_seconds()
             }
-            Lazer::Fired => {
-                if transform.translation.y > SCENE_HEIGHT {
-                    *lazer = Lazer::Idle;
-                } else {
-                    transform.translation.y += LAZER_SPEED * time.delta_seconds()
-                }
-            }
-            _ => {
-                *visibility = Visibility::Hidden;
-            }
+        }
+        _ => {
+            *visibility = Visibility::Hidden;
         }
     }
 }
@@ -151,36 +156,42 @@ fn hit_detection(
     alien_query: Query<(Entity, &Transform), With<Alien>>,
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
 ) {
-    for (mut lazer, lazer_transform) in &mut lazer_query {
-        if *lazer == Lazer::Fired {
-            for (entity, enemy_transform) in alien_query.iter() {
-                let x = enemy_transform.translation.x;
-                let y = enemy_transform.translation.y;
-                let half_w = ALIENS_WIDTH / 2.0;
-                let half_h = ALIENS_HEIGHT / 2.0;
+    // get lazer singleton
+    let mut lazer_iterator = lazer_query.iter_mut();
+    let (mut lazer, lazer_transform) = lazer_iterator.next().unwrap();
+    assert!(lazer_iterator.next().is_none());
 
-                let x_range = (x - half_w)..(x + half_w);
-                let y_range = (y - half_h)..(x + half_h);
+    if *lazer == Lazer::Fired {
+        let mut nr_checked = 0;
+        for (entity, enemy_transform) in alien_query.iter() {
+            nr_checked += 1;
+            let x = enemy_transform.translation.x;
+            let y = enemy_transform.translation.y;
+            let half_w = ALIENS_WIDTH / 2.0;
+            let half_h = ALIENS_HEIGHT / 2.0;
 
-                let lazer_x = lazer_transform.translation.x;
-                let lazer_y = lazer_transform.translation.y;
+            let x_range = (x - half_w)..(x + half_w);
+            let y_range = (y - half_h)..(x + half_h);
 
-                // Your collision check
-                if x_range.contains(&lazer_x) && (y_range.contains(&lazer_y)) {
-                    println!(
-                        "hit at x {}, y {}, lazer_x {}, lazer_y {}",
-                        x, y, lazer_x, lazer_y
-                    );
-                    commands.entity(entity).despawn();
-                    *lazer = Lazer::Idle; // ugg
-                }
+            let lazer_x = lazer_transform.translation.x;
+            let lazer_y = lazer_transform.translation.y;
+
+            // Your collision check
+            if x_range.contains(&lazer_x) && (y_range.contains(&lazer_y)) {
+                println!(
+                    "hit at x {}, y {}, lazer_x {}, lazer_y {}",
+                    x, y, lazer_x, lazer_y
+                );
+                commands.entity(entity).despawn();
+                *lazer = Lazer::Idle;
             }
         }
+        println!("nr_checked {}", nr_checked);
     }
 }
 
-// we might want to setup a camera as well.
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // we might want to setup a custom camera, for now just default
     commands.spawn(Camera2dBundle::default());
     commands.spawn((
         Player::None,
