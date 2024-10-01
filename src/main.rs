@@ -17,6 +17,7 @@ const SCENE_WIDTH: f32 = RES_X / 2.0 - 100.0;
 const SCENE_HEIGHT: f32 = RES_Y / 2.0 - 50.0;
 const ALIENS_COL: usize = 11;
 const ALIENS_ROW: usize = 5;
+const ALIENS_TOTAL: u8 = ALIENS_COL as u8 * ALIENS_ROW as u8;
 const ALIENS_SPACE: f32 = 80.0; // used for layout
 const ALIEN_SIZE: Vec2 = Vec2::new(64.0, 40.0); // used for hit box
 const ALIEN_BULLET_SPEED: f32 = 300.0;
@@ -26,6 +27,8 @@ const BUNKERS_Y: f32 = 150.0;
 const BUNKER_SIZE: Vec2 = Vec2::new(16.0, 16.0);
 
 const ALIENS_SPEED: f32 = 30.0;
+
+const SCORE_ALIEN: u32 = 10;
 
 #[derive(Component)]
 enum Player {
@@ -154,20 +157,23 @@ struct Alien {
 /// alien movement and shooting
 fn alien_movement(
     time: Res<Time>,
+    mut store: ResMut<Store>,
     mut commands: Commands,
-    mut bullet: ResMut<Store>,
+
     mut aliens: Query<(&mut Alien, &mut Transform)>,
 ) {
     let mut new_direction = None;
     for (alien, mut transform) in &mut aliens {
-        if bullet.instant.elapsed() > Duration::new(2, 0) && rand::random::<f32>() > 0.95 {
-            bullet.instant = Instant::now();
-            info!("bullet spawned {:?}", bullet.instant);
+        // drop bullet?
+        if store.instant.elapsed() > Duration::from_millis(200)
+            && rand::random::<f32>() < 0.25f32 / ((1 + ALIENS_TOTAL - store.aliens_killed) as f32)
+        {
+            info!("bullet spawned {:?}", store.instant);
             commands.spawn((
                 AlienBullet,
                 SpriteBundle {
                     transform: *transform,
-                    texture: bullet.texture_handler.clone(),
+                    texture: store.texture_handler.clone(),
                     ..default()
                 },
             ));
@@ -188,6 +194,7 @@ fn alien_movement(
             }
         }
     }
+    store.instant = Instant::now();
 
     // set new direction for all aliens
     if let Some(direction) = new_direction {
@@ -202,6 +209,7 @@ fn alien_movement(
 struct Bunker;
 
 fn hit_detection(
+    mut store: ResMut<Store>,
     mut commands: Commands,
     alien_query: Query<(Entity, &Transform), With<Alien>>,
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
@@ -255,6 +263,8 @@ fn hit_detection(
             if in_rect(lazer_transform, enemy_transform, ALIEN_SIZE) {
                 commands.entity(entity).despawn();
                 *lazer = Lazer::Idle;
+                store.aliens_killed += 1;
+                store.score += SCORE_ALIEN;
             }
         }
     }
@@ -264,6 +274,8 @@ fn hit_detection(
 struct Store {
     texture_handler: Handle<Image>,
     instant: Instant,
+    score: u32,
+    aliens_killed: u8,
 }
 
 fn setup(
@@ -361,6 +373,8 @@ fn setup(
     commands.insert_resource(Store {
         texture_handler,
         instant: Instant::now(),
+        score: 0,
+        aliens_killed: 0,
     });
 }
 
