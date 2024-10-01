@@ -138,6 +138,7 @@ fn alien_bullet_movement(
 ) {
     for (entity, mut transform) in &mut bullet_query {
         if transform.translation.y < -SCENE_HEIGHT {
+            info!("bullet despawn");
             commands.entity(entity).despawn();
         } else {
             transform.translation.y -= ALIEN_BULLET_SPEED * time.delta_seconds();
@@ -154,13 +155,14 @@ struct Alien {
 fn alien_movement(
     time: Res<Time>,
     mut commands: Commands,
-    mut bullet: ResMut<Bullet>,
+    mut bullet: ResMut<Store>,
     mut aliens: Query<(&mut Alien, &mut Transform)>,
 ) {
     let mut new_direction = None;
     for (alien, mut transform) in &mut aliens {
-        if bullet.instant.elapsed() > Duration::new(1, 0) && rand::random::<f32>() > 0.95 {
+        if bullet.instant.elapsed() > Duration::new(2, 0) && rand::random::<f32>() > 0.95 {
             bullet.instant = Instant::now();
+            info!("bullet spawned {:?}", bullet.instant);
             commands.spawn((
                 AlienBullet,
                 SpriteBundle {
@@ -204,6 +206,7 @@ fn hit_detection(
     alien_query: Query<(Entity, &Transform), With<Alien>>,
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
     mut bunker_query: Query<(&mut TextureAtlas, Entity, &Transform), With<Bunker>>,
+    alien_bullet_query: Query<(Entity, &Transform), With<AlienBullet>>,
 ) {
     // check if point:&Transform is in &target:Transform with size:Vec2
     #[inline(always)]
@@ -220,6 +223,15 @@ fn hit_detection(
             atlas.index += 4;
         } else {
             commands.entity(entity).despawn();
+        }
+    }
+    // alien bullets
+    for (bullet_entity, bullet_transform) in &alien_bullet_query {
+        for (bunker_atlas, bunker_entity, bunker_transform) in &mut bunker_query {
+            if in_rect(bullet_transform, bunker_transform, BUNKER_SIZE) {
+                hit_bunker(&mut commands, bunker_entity, bunker_atlas);
+                commands.entity(bullet_entity).despawn();
+            }
         }
     }
 
@@ -249,7 +261,7 @@ fn hit_detection(
 }
 
 #[derive(Resource)]
-struct Bullet {
+struct Store {
     texture_handler: Handle<Image>,
     instant: Instant,
 }
@@ -346,7 +358,7 @@ fn setup(
 
     // Loads bullet sprite
     let texture_handler: Handle<Image> = asset_server.load("sprites/drop.png");
-    commands.insert_resource(Bullet {
+    commands.insert_resource(Store {
         texture_handler,
         instant: Instant::now(),
     });
