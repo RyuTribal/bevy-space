@@ -83,3 +83,32 @@ pub fn alien_movement(
         }
     }
 }
+
+// Builds and spawns the Alien sprites
+pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // Builds and spawns the Alien sprites
+    let sprite_handle = asset_server.load("sprites/alien.png");
+
+    let mut aliens = vec![];
+    let step_x = ALIENS_SPACE;
+    let step_y = ALIENS_SPACE * 0.75;
+    for y in 0..ALIENS_ROW {
+        for x in 0..ALIENS_COL {
+            aliens.push((
+                Alien {
+                    direction: Direction::Right,
+                },
+                SpriteBundle {
+                    texture: sprite_handle.clone(),
+                    transform: Transform::from_xyz(
+                        (x as f32 - ALIENS_COL as f32 / 2.0) * step_x,
+                        SCENE_HEIGHT - 100.0 - (y as f32 * step_y),
+                        -1.0, // behind in scene
+                    ),
+                    ..Default::default()
+                },
+            ));
+        }
+    }
+    commands.spawn_batch(aliens);
+}

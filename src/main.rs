@@ -4,14 +4,8 @@
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, window::WindowResolution};
 // use rand::prelude::*;
 use bevy_space::{
-    alien::{self, Alien},
-    bunker::Bunker,
-    common::*,
-    hit_detection, keyboard_input, lazer,
-    lazer::Lazer,
-    overlay, player,
-    player::Player,
-    store::Store,
+    alien, bunker::Bunker, common::*, hit_detection, keyboard_input, lazer, lazer::Lazer, overlay,
+    player, player::Player, store::Store,
 };
 
 use std::time::Instant;
@@ -40,32 +34,6 @@ fn setup(
             ..default()
         },
     ));
-
-    // Builds and spawns the Alien sprites
-    let sprite_handle = asset_server.load("sprites/alien.png");
-
-    let mut aliens = vec![];
-    let step_x = ALIENS_SPACE;
-    let step_y = ALIENS_SPACE;
-    for y in 0..ALIENS_ROW {
-        for x in 0..ALIENS_COL {
-            aliens.push((
-                Alien {
-                    direction: alien::Direction::Right,
-                },
-                SpriteBundle {
-                    texture: sprite_handle.clone(),
-                    transform: Transform::from_xyz(
-                        (x as f32 - ALIENS_COL as f32 / 2.0) * step_x,
-                        SCENE_HEIGHT - (y as f32 * step_y),
-                        -1.0, // behind in scene
-                    ),
-                    ..Default::default()
-                },
-            ));
-        }
-    }
-    commands.spawn_batch(aliens);
 
     // Builds and spawns the bunker sprites
     let texture = asset_server.load("sprites/defense.png");
@@ -126,7 +94,7 @@ fn main() {
             ..default()
         }))
         .add_plugins(FrameTimeDiagnosticsPlugin)
-        .add_systems(Startup, (setup, overlay::setup).chain())
+        .add_systems(Startup, (setup, alien::setup, overlay::setup).chain())
         .add_systems(
             Update,
             (
