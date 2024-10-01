@@ -21,8 +21,8 @@ pub fn hit_detection(
 
     #[inline(always)]
     fn hit_bunker(commands: &mut Commands, entity: Entity, mut atlas: Mut<TextureAtlas>) {
-        if atlas.index < 4 {
-            atlas.index += 4;
+        if atlas.index < 6 {
+            atlas.index += 3;
         } else {
             commands.entity(entity).despawn();
         }

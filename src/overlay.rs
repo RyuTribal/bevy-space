@@ -1,5 +1,4 @@
-//! It displays the current FPS in the top left corner, as well as text that changes color
-//! in the bottom right.
+//! It displays the current FPS in the top left corner and score top right
 
 use bevy::{
     color::palettes::css::GOLD,
@@ -34,7 +33,13 @@ pub fn setup(mut commands: Commands) {
                 color: GOLD.into(),
                 ..default()
             }),
-        ]),
+        ])
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            top: Val::Px(5.0),
+            left: Val::Px(5.0),
+            ..default()
+        }),
     ));
 
     // Text with multiple sections
@@ -58,7 +63,7 @@ pub fn setup(mut commands: Commands) {
         .with_style(Style {
             position_type: PositionType::Absolute,
             top: Val::Px(5.0),
-            right: Val::Px(0.0),
+            right: Val::Px(5.0),
             ..default()
         }),
     ));

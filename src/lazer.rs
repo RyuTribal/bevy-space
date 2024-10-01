@@ -43,3 +43,15 @@ pub fn lazer_movement(
         }
     }
 }
+
+pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        Lazer::Idle,
+        SpriteBundle {
+            texture: asset_server.load("sprites/lazer.png"),
+            transform: Transform::from_xyz(0., SCENE_HEIGHT, 0.),
+            visibility: Visibility::Hidden,
+            ..default()
+        },
+    ));
+}
