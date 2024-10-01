@@ -48,12 +48,39 @@ pub fn setup(mut commands: Commands) {
         ScoreText,
         TextBundle::from_sections([
             TextSection::new(
+                "LIVES: ",
+                TextStyle {
+                    font_size: 60.0,
+                    ..default()
+                },
+            ),
+            // Lives = 1
+            TextSection::from_style(TextStyle {
+                font_size: 60.0,
+                color: GOLD.into(),
+                ..default()
+            }),
+            TextSection::new(
+                "WAVE: ",
+                TextStyle {
+                    font_size: 60.0,
+                    ..default()
+                },
+            ),
+            // Wave = 3
+            TextSection::from_style(TextStyle {
+                font_size: 60.0,
+                color: GOLD.into(),
+                ..default()
+            }),
+            TextSection::new(
                 "SCORE: ",
                 TextStyle {
                     font_size: 60.0,
                     ..default()
                 },
             ),
+            // Score
             TextSection::from_style(TextStyle {
                 font_size: 60.0,
                 color: GOLD.into(),
@@ -85,6 +112,8 @@ pub fn text_update_system(
 
 pub fn score_update_system(store: Res<Store>, mut query: Query<&mut Text, With<ScoreText>>) {
     for mut text in &mut query {
-        text.sections[1].value = format!("{:06}", store.score);
+        text.sections[1].value = format!("{:06}", store.lives);
+        text.sections[3].value = format!("{:06}", store.score);
+        text.sections[5].value = format!("{:06}", store.score);
     }
 }

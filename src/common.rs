@@ -22,6 +22,8 @@ pub const BUNKER_SPACE: f32 = SCENE_WIDTH / BUNKERS as f32;
 pub const BUNKERS_Y: f32 = 150.0;
 pub const BUNKER_SIZE: Vec2 = Vec2::new(16.0, 16.0);
 
-pub const ALIENS_SPEED: f32 = 30.0;
-
+pub const ALIENS_SPEED_START: f32 = 30.0;
+pub const ALIENS_SPEED_KILL: f32 = 2.0;
+pub const ALIENS_SPEED_WAVE: f32 = 10.0;
+pub const ALIENS_SPEED_MAX: f32 = 100.0;
 pub const SCORE_ALIEN: u32 = 10;

@@ -61,6 +61,7 @@ pub fn alien_bullet_movement(
 /// alien movement and shooting
 pub fn alien_movement(
     time: Res<Time>,
+
     mut store: ResMut<Store>,
     mut commands: Commands,
 
@@ -74,11 +75,15 @@ pub fn alien_movement(
         {
             store.instant = Instant::now();
             info!("bullet spawned {:?}", store.instant);
+            let mut texture = None;
+            store.texture_handler.clone_into(&mut texture);
+            let texture = texture.unwrap();
+
             commands.spawn((
                 AlienBullet,
                 SpriteBundle {
                     transform: *transform,
-                    texture: store.texture_handler.clone(),
+                    texture,
                     ..default()
                 },
             ));
@@ -86,13 +91,13 @@ pub fn alien_movement(
 
         match alien.direction {
             Direction::Left => {
-                transform.translation.x -= ALIENS_SPEED * time.delta_seconds();
+                transform.translation.x -= store.alien_speed * time.delta_seconds();
                 if transform.translation.x < -SCENE_WIDTH {
                     new_direction = Some(Direction::Right);
                 }
             }
             Direction::Right => {
-                transform.translation.x += ALIENS_SPEED * time.delta_seconds();
+                transform.translation.x += store.alien_speed * time.delta_seconds();
                 if transform.translation.x > SCENE_WIDTH {
                     new_direction = Some(Direction::Left);
                 }
@@ -144,7 +149,7 @@ pub fn setup(
                     index: animation_indices.first,
                 },
                 animation_indices,
-                AnimationTimer(Timer::from_seconds(0.025, TimerMode::Repeating)),
+                AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
             ));
         }
     }

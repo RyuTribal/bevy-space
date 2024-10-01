@@ -70,6 +70,7 @@ pub fn hit_detection(
                 commands.entity(entity).despawn();
                 *lazer = Lazer::Idle;
                 store.aliens_killed += 1;
+                store.alien_speed += ALIENS_SPEED_KILL;
                 store.score += SCORE_ALIEN;
             }
         }
