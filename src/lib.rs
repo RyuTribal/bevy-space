@@ -4,5 +4,6 @@ pub mod common;
 pub mod hit_detection;
 pub mod keyboard_input;
 pub mod lazer;
+pub mod overlay;
 pub mod player;
 pub mod store;

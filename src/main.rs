@@ -1,7 +1,11 @@
 //! Space Invaders revisited, why not?
 //! RUST_LOG="bevy-space=info" cargo run
 
-use bevy::{prelude::*, window::WindowResolution};
+use bevy::{
+    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
+    prelude::*,
+    window::WindowResolution,
+};
 // use rand::prelude::*;
 use bevy_space::{
     alien::{self, Alien},
@@ -9,7 +13,7 @@ use bevy_space::{
     common::*,
     hit_detection, keyboard_input, lazer,
     lazer::Lazer,
-    player,
+    overlay, player,
     player::Player,
     store::Store,
 };
@@ -125,7 +129,8 @@ fn main() {
             }),
             ..default()
         }))
-        .add_systems(Startup, setup)
+        .add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_systems(Startup, (setup, overlay::setup).chain())
         .add_systems(
             Update,
             (
@@ -135,6 +140,8 @@ fn main() {
                 lazer::lazer_movement,
                 alien::alien_movement,
                 alien::alien_bullet_movement,
+                overlay::text_update_system,
+                overlay::text_color_system,
             ), // now all systems parallel
                // .chain(), // all systems in sequential order to keep it simple
         )
