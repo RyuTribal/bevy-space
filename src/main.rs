@@ -3,294 +3,18 @@
 
 use bevy::{prelude::*, window::WindowResolution};
 // use rand::prelude::*;
-use std::time::{Duration, Instant};
+use bevy_space::{
+    alien::{self, Alien},
+    bunker::Bunker,
+    common::*,
+    hit_detection, keyboard_input, lazer,
+    lazer::Lazer,
+    player,
+    player::Player,
+    store::Store,
+};
 
-// vintage television format
-const RES_Y: f32 = 1080.0; // well a bit too modern
-const RES_X: f32 = RES_Y * 4.0 / 3.0;
-
-const PLAYER_SPEED: f32 = 500.0;
-const PLAYER_SIZE: Vec2 = Vec2::new(64.0, 40.0);
-const PLAYER_HEIGHT: f32 = 50.0; // There should be a way to get this from sprite
-const LAZER_SPEED: f32 = 1000.0;
-
-const SCENE_WIDTH: f32 = RES_X / 2.0 - 100.0;
-const SCENE_HEIGHT: f32 = RES_Y / 2.0 - 50.0;
-const ALIENS_COL: usize = 11;
-const ALIENS_ROW: usize = 5;
-const ALIENS_TOTAL: u8 = ALIENS_COL as u8 * ALIENS_ROW as u8;
-const ALIENS_SPACE: f32 = 80.0; // used for layout
-const ALIEN_SIZE: Vec2 = Vec2::new(64.0, 40.0); // used for hit box
-const ALIEN_BULLET_SPEED: f32 = 300.0;
-const BUNKERS: usize = 5;
-const BUNKER_SPACE: f32 = SCENE_WIDTH / BUNKERS as f32;
-const BUNKERS_Y: f32 = 150.0;
-const BUNKER_SIZE: Vec2 = Vec2::new(16.0, 16.0);
-
-const ALIENS_SPEED: f32 = 30.0;
-
-const SCORE_ALIEN: u32 = 10;
-
-#[derive(Component)]
-enum Player {
-    Left,
-    Right,
-    None,
-}
-
-#[derive(Component, PartialEq, Clone, Copy)]
-enum Lazer {
-    Fire,
-    Fired,
-    Idle,
-}
-
-/// keyboard input
-fn keyboard_input_system(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut player_query: Query<&mut Player>,
-    mut lazer_query: Query<&mut Lazer>,
-) {
-    for mut direction in &mut player_query {
-        let mut new_direction = Player::None;
-        if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
-            new_direction = Player::Left;
-        }
-        if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
-            new_direction = Player::Right;
-        }
-        *direction = new_direction;
-    }
-
-    for mut lazer in &mut lazer_query {
-        if *lazer == Lazer::Idle
-            && (keyboard_input.just_pressed(KeyCode::Space)
-                || keyboard_input.pressed(KeyCode::ArrowUp))
-        {
-            *lazer = Lazer::Fire;
-        }
-    }
-}
-
-/// player movement
-fn player_movement(time: Res<Time>, mut player_query: Query<(&Player, &mut Transform)>) {
-    for (direction, mut transform) in &mut player_query {
-        match *direction {
-            Player::Left => {
-                if transform.translation.x > -SCENE_WIDTH {
-                    transform.translation.x -= PLAYER_SPEED * time.delta_seconds()
-                }
-            }
-            Player::Right => {
-                if transform.translation.x < SCENE_WIDTH {
-                    transform.translation.x += PLAYER_SPEED * time.delta_seconds()
-                }
-            }
-            _ => {}
-        }
-    }
-}
-
-/// lazer movement
-fn lazer_movement(
-    time: Res<Time>,
-    player_query: Query<&Transform, With<Player>>,
-    mut lazer_position: Query<(&mut Lazer, &mut Visibility, &mut Transform), Without<Player>>,
-) {
-    // get a player_transform singleton
-    let mut player_iterator = player_query.iter();
-    let player_transform = player_iterator.next().unwrap();
-    assert!(player_iterator.next().is_none());
-
-    // get a lazer singleton
-    let mut lazer_iterator = lazer_position.iter_mut();
-    let (mut lazer, mut visibility, mut transform) = lazer_iterator.next().unwrap();
-    assert!(lazer_iterator.next().is_none());
-
-    match *lazer {
-        Lazer::Fire => {
-            transform.translation =
-                player_transform.translation + Vec3::new(0.0, PLAYER_HEIGHT, 0.0);
-            *lazer = Lazer::Fired;
-            *visibility = Visibility::Visible;
-        }
-        Lazer::Fired => {
-            if transform.translation.y > SCENE_HEIGHT {
-                *lazer = Lazer::Idle;
-            } else {
-                transform.translation.y += LAZER_SPEED * time.delta_seconds()
-            }
-        }
-        _ => {
-            *visibility = Visibility::Hidden;
-        }
-    }
-}
-
-#[derive(Clone, Copy)]
-enum Direction {
-    Left,
-    Right,
-}
-
-#[derive(Component)]
-struct AlienBullet;
-fn alien_bullet_movement(
-    time: Res<Time>,
-    mut commands: Commands,
-    mut bullet_query: Query<(Entity, &mut Transform), With<AlienBullet>>,
-) {
-    for (entity, mut transform) in &mut bullet_query {
-        if transform.translation.y < -SCENE_HEIGHT {
-            info!("bullet despawn");
-            commands.entity(entity).despawn();
-        } else {
-            transform.translation.y -= ALIEN_BULLET_SPEED * time.delta_seconds();
-        }
-    }
-}
-
-#[derive(Component)]
-struct Alien {
-    direction: Direction,
-}
-
-/// alien movement and shooting
-fn alien_movement(
-    time: Res<Time>,
-    mut store: ResMut<Store>,
-    mut commands: Commands,
-
-    mut aliens: Query<(&mut Alien, &mut Transform)>,
-) {
-    let mut new_direction = None;
-    for (alien, mut transform) in &mut aliens {
-        // drop bullet?
-        if store.instant.elapsed() > Duration::from_millis(200)
-            && rand::random::<f32>() < 0.25f32 / ((1 + ALIENS_TOTAL - store.aliens_killed) as f32)
-        {
-            store.instant = Instant::now();
-            info!("bullet spawned {:?}", store.instant);
-            commands.spawn((
-                AlienBullet,
-                SpriteBundle {
-                    transform: *transform,
-                    texture: store.texture_handler.clone(),
-                    ..default()
-                },
-            ));
-        }
-
-        match alien.direction {
-            Direction::Left => {
-                transform.translation.x -= ALIENS_SPEED * time.delta_seconds();
-                if transform.translation.x < -SCENE_WIDTH {
-                    new_direction = Some(Direction::Right);
-                }
-            }
-            Direction::Right => {
-                transform.translation.x += ALIENS_SPEED * time.delta_seconds();
-                if transform.translation.x > SCENE_WIDTH {
-                    new_direction = Some(Direction::Left);
-                }
-            }
-        }
-    }
-
-    // set new direction for all aliens
-    if let Some(direction) = new_direction {
-        for (mut alien, mut transform) in &mut aliens {
-            transform.translation.y -= ALIEN_SIZE.y;
-            alien.direction = direction;
-        }
-    }
-}
-
-#[derive(Component, Clone, Copy)]
-struct Bunker;
-
-fn hit_detection(
-    mut store: ResMut<Store>,
-    mut commands: Commands,
-    alien_query: Query<(Entity, &Transform), With<Alien>>,
-    mut lazer_query: Query<(&mut Lazer, &Transform)>,
-    mut bunker_query: Query<(&mut TextureAtlas, Entity, &Transform), With<Bunker>>,
-    alien_bullet_query: Query<(Entity, &Transform), With<AlienBullet>>,
-    player_query: Query<&Transform, With<Player>>,
-) {
-    // check if point:&Transform is in &target:Transform with size:Vec2
-    #[inline(always)]
-    fn in_rect(point: &Transform, target: &Transform, size: Vec2) -> bool {
-        let t_vec: Vec2 = (target.translation.x, target.translation.y).into();
-        let p_vec: Vec2 = (point.translation.x, point.translation.y).into();
-        let rect = Rect::from_center_size(t_vec, size);
-        rect.contains(p_vec)
-    }
-
-    #[inline(always)]
-    fn hit_bunker(commands: &mut Commands, entity: Entity, mut atlas: Mut<TextureAtlas>) {
-        if atlas.index < 4 {
-            atlas.index += 4;
-        } else {
-            commands.entity(entity).despawn();
-        }
-    }
-
-    // get a player_transform singleton
-    let mut player_iterator = player_query.iter();
-    let player_transform = player_iterator.next().unwrap();
-    assert!(player_iterator.next().is_none());
-
-    // alien bullets
-    for (bullet_entity, bullet_transform) in &alien_bullet_query {
-        // hit player
-        if in_rect(bullet_transform, player_transform, PLAYER_SIZE) {
-            error!("you died");
-            commands.entity(bullet_entity).despawn();
-        }
-        // hit bunker?
-        for (bunker_atlas, bunker_entity, bunker_transform) in &mut bunker_query {
-            if in_rect(bullet_transform, bunker_transform, BUNKER_SIZE) {
-                hit_bunker(&mut commands, bunker_entity, bunker_atlas);
-                commands.entity(bullet_entity).despawn();
-            }
-        }
-    }
-
-    // get lazer singleton
-    let mut lazer_iterator = lazer_query.iter_mut();
-    let (mut lazer, lazer_transform) = lazer_iterator.next().unwrap();
-    assert!(lazer_iterator.next().is_none());
-
-    if *lazer == Lazer::Fired {
-        // check bunkers
-        for (atlas, entity, bunker_transform) in &mut bunker_query {
-            if in_rect(lazer_transform, bunker_transform, BUNKER_SIZE) {
-                hit_bunker(&mut commands, entity, atlas);
-                *lazer = Lazer::Idle;
-            }
-        }
-
-        // check aliens
-        for (entity, enemy_transform) in &alien_query {
-            // Collision check
-            if in_rect(lazer_transform, enemy_transform, ALIEN_SIZE) {
-                commands.entity(entity).despawn();
-                *lazer = Lazer::Idle;
-                store.aliens_killed += 1;
-                store.score += SCORE_ALIEN;
-            }
-        }
-    }
-}
-
-#[derive(Resource)]
-struct Store {
-    texture_handler: Handle<Image>,
-    instant: Instant,
-    score: u32,
-    aliens_killed: u8,
-}
+use std::time::Instant;
 
 fn setup(
     mut commands: Commands,
@@ -327,7 +51,7 @@ fn setup(
         for x in 0..ALIENS_COL {
             aliens.push((
                 Alien {
-                    direction: Direction::Right,
+                    direction: alien::Direction::Right,
                 },
                 SpriteBundle {
                     texture: sprite_handle.clone(),
@@ -405,12 +129,12 @@ fn main() {
         .add_systems(
             Update,
             (
-                keyboard_input_system,
-                hit_detection,
-                player_movement,
-                lazer_movement,
-                alien_movement,
-                alien_bullet_movement,
+                keyboard_input::keyboard_input_system,
+                hit_detection::hit_detection,
+                player::player_movement,
+                lazer::lazer_movement,
+                alien::alien_movement,
+                alien::alien_bullet_movement,
             ), // now all systems parallel
                // .chain(), // all systems in sequential order to keep it simple
         )
