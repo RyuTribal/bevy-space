@@ -1,11 +1,7 @@
 //! Space Invaders revisited, why not?
 //! RUST_LOG="bevy-space=info" cargo run
 
-use bevy::{
-    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
-    prelude::*,
-    window::WindowResolution,
-};
+use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, window::WindowResolution};
 // use rand::prelude::*;
 use bevy_space::{
     alien::{self, Alien},
@@ -141,7 +137,7 @@ fn main() {
                 alien::alien_movement,
                 alien::alien_bullet_movement,
                 overlay::text_update_system,
-                overlay::text_color_system,
+                overlay::score_update_system,
             ), // now all systems parallel
                // .chain(), // all systems in sequential order to keep it simple
         )
