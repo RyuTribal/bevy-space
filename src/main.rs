@@ -5,7 +5,7 @@ use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, window::WindowRes
 // use rand::prelude::*;
 use bevy_space::{
     alien, bunker::Bunker, common::*, hit_detection, keyboard_input, lazer, lazer::Lazer, overlay,
-    player, player::Player, store::Store,
+    player, store::Store,
 };
 
 use std::time::Instant;
@@ -17,14 +17,7 @@ fn setup(
 ) {
     // we might want to setup a custom camera, for now just default
     commands.spawn(Camera2dBundle::default());
-    commands.spawn((
-        Player::None,
-        SpriteBundle {
-            texture: asset_server.load("sprites/space.png"),
-            transform: Transform::from_xyz(0., -SCENE_HEIGHT, 0.),
-            ..default()
-        },
-    ));
+
     commands.spawn((
         Lazer::Idle,
         SpriteBundle {
@@ -94,7 +87,10 @@ fn main() {
             ..default()
         }))
         .add_plugins(FrameTimeDiagnosticsPlugin)
-        .add_systems(Startup, (setup, alien::setup, overlay::setup).chain())
+        .add_systems(
+            Startup,
+            (setup, player::setup, alien::setup, overlay::setup).chain(),
+        )
         .add_systems(
             Update,
             (
