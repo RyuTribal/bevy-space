@@ -6,8 +6,11 @@ Small experiment to assess complexity of getting a simple thing done from scratc
 
 So far:
 
-- Alien and space ship sprites.
-- Keyboard input for movement.
+- Basically a working game already (in less than two days)
+
+Todo:
+
+- Game menu and such
 
 ## Tools used
 
@@ -18,7 +21,7 @@ So far:
 See `Cargo.toml`
 
 - `dynamic_linking` (for reduced compilation time)
-- `log` (settings for removing logging in release builds)
+- `log` (settings for removing logging in release builds), seems not to work though
 - `profile dev/release (for reasonable performance)
   
 See `.cargo/config.toml`

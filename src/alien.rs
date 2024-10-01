@@ -24,7 +24,7 @@ pub struct AnimationIndices {
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(Timer);
 
-pub fn animate_sprite(
+pub fn animate_alien_sprite(
     time: Res<Time>,
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut TextureAtlas)>,
 ) {
@@ -50,7 +50,7 @@ pub fn alien_bullet_movement(
 ) {
     for (entity, mut transform) in &mut bullet_query {
         if transform.translation.y < -SCENE_HEIGHT {
-            info!("bullet despawn");
+            trace!("bullet despawn");
             commands.entity(entity).despawn();
         } else {
             transform.translation.y -= ALIEN_BULLET_SPEED * time.delta_seconds();
@@ -74,7 +74,7 @@ pub fn alien_movement(
             && rand::random::<f32>() < 0.25f32 / ((1 + ALIENS_TOTAL - store.aliens_killed) as f32)
         {
             store.instant = Instant::now();
-            info!("bullet spawned {:?}", store.instant);
+            trace!("bullet spawned {:?}", store.instant);
             let mut texture = None;
             store.texture_handler.clone_into(&mut texture);
             let texture = texture.unwrap();

@@ -27,3 +27,5 @@ pub const ALIENS_SPEED_KILL: f32 = 2.0;
 pub const ALIENS_SPEED_WAVE: f32 = 10.0;
 pub const ALIENS_SPEED_MAX: f32 = 100.0;
 pub const SCORE_ALIEN: u32 = 10;
+
+pub const FONT_SIZE: f32 = 50.0;
