@@ -10,6 +10,7 @@ const RES_Y: f32 = 1080.0; // well a bit too modern
 const RES_X: f32 = RES_Y * 4.0 / 3.0;
 
 const PLAYER_SPEED: f32 = 500.0;
+const PLAYER_SIZE: Vec2 = Vec2::new(64.0, 40.0);
 const PLAYER_HEIGHT: f32 = 50.0; // There should be a way to get this from sprite
 const LAZER_SPEED: f32 = 1000.0;
 
@@ -168,6 +169,7 @@ fn alien_movement(
         if store.instant.elapsed() > Duration::from_millis(200)
             && rand::random::<f32>() < 0.25f32 / ((1 + ALIENS_TOTAL - store.aliens_killed) as f32)
         {
+            store.instant = Instant::now();
             info!("bullet spawned {:?}", store.instant);
             commands.spawn((
                 AlienBullet,
@@ -194,7 +196,6 @@ fn alien_movement(
             }
         }
     }
-    store.instant = Instant::now();
 
     // set new direction for all aliens
     if let Some(direction) = new_direction {
@@ -215,6 +216,7 @@ fn hit_detection(
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
     mut bunker_query: Query<(&mut TextureAtlas, Entity, &Transform), With<Bunker>>,
     alien_bullet_query: Query<(Entity, &Transform), With<AlienBullet>>,
+    player_query: Query<&Transform, With<Player>>,
 ) {
     // check if point:&Transform is in &target:Transform with size:Vec2
     #[inline(always)]
@@ -233,8 +235,20 @@ fn hit_detection(
             commands.entity(entity).despawn();
         }
     }
+
+    // get a player_transform singleton
+    let mut player_iterator = player_query.iter();
+    let player_transform = player_iterator.next().unwrap();
+    assert!(player_iterator.next().is_none());
+
     // alien bullets
     for (bullet_entity, bullet_transform) in &alien_bullet_query {
+        // hit player
+        if in_rect(bullet_transform, player_transform, PLAYER_SIZE) {
+            error!("you died");
+            commands.entity(bullet_entity).despawn();
+        }
+        // hit bunker?
         for (bunker_atlas, bunker_entity, bunker_transform) in &mut bunker_query {
             if in_rect(bullet_transform, bunker_transform, BUNKER_SIZE) {
                 hit_bunker(&mut commands, bunker_entity, bunker_atlas);
