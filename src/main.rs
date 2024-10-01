@@ -43,6 +43,7 @@ fn main() {
                 lazer::lazer_movement,
                 alien::alien_movement,
                 alien::alien_bullet_movement,
+                alien::animate_sprite,
                 overlay::text_update_system,
                 overlay::score_update_system,
             ), // now all systems parallel

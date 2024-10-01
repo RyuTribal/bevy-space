@@ -15,6 +15,31 @@ pub struct Alien {
     pub direction: Direction,
 }
 
+#[derive(Component, Clone, Copy)]
+pub struct AnimationIndices {
+    first: usize,
+    last: usize,
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct AnimationTimer(Timer);
+
+pub fn animate_sprite(
+    time: Res<Time>,
+    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut TextureAtlas)>,
+) {
+    for (indices, mut timer, mut atlas) in &mut query {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            atlas.index = if atlas.index == indices.last {
+                indices.first
+            } else {
+                atlas.index + 1
+            };
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct AlienBullet;
 
@@ -85,9 +110,16 @@ pub fn alien_movement(
 }
 
 // Builds and spawns the Alien sprites
-pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
     // Builds and spawns the Alien sprites
-    let sprite_handle = asset_server.load("sprites/alien.png");
+    let texture = asset_server.load("sprites/alien.png");
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 48), 4, 1, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+    let animation_indices = AnimationIndices { first: 0, last: 3 };
 
     let mut aliens = vec![];
     let step_x = ALIENS_SPACE;
@@ -99,14 +131,20 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     direction: Direction::Right,
                 },
                 SpriteBundle {
-                    texture: sprite_handle.clone(),
                     transform: Transform::from_xyz(
                         (x as f32 - ALIENS_COL as f32 / 2.0) * step_x,
                         SCENE_HEIGHT - 100.0 - (y as f32 * step_y),
                         -1.0, // behind in scene
                     ),
-                    ..Default::default()
+                    texture: texture.clone(),
+                    ..default()
                 },
+                TextureAtlas {
+                    layout: texture_atlas_layout.clone(),
+                    index: animation_indices.first,
+                },
+                animation_indices,
+                AnimationTimer(Timer::from_seconds(0.025, TimerMode::Repeating)),
             ));
         }
     }
