@@ -2,6 +2,8 @@
 //! RUST_LOG="bevy-space=info" cargo run
 
 use bevy::{prelude::*, window::WindowResolution};
+// use rand::prelude::*;
+use std::time::{Duration, Instant};
 
 // vintage television format
 const RES_Y: f32 = 1080.0; // well a bit too modern
@@ -16,8 +18,8 @@ const SCENE_HEIGHT: f32 = RES_Y / 2.0 - 50.0;
 const ALIENS_COL: usize = 11;
 const ALIENS_ROW: usize = 5;
 const ALIENS_SPACE: f32 = 80.0; // used for layout
-const ALIEN_SIZE: Vec2 = Vec2::new(64.0, 10.0); // used for hit box
-
+const ALIEN_SIZE: Vec2 = Vec2::new(64.0, 40.0); // used for hit box
+const ALIEN_BULLET_SPEED: f32 = 300.0;
 const BUNKERS: usize = 5;
 const BUNKER_SPACE: f32 = SCENE_WIDTH / BUNKERS as f32;
 const BUNKERS_Y: f32 = 150.0;
@@ -41,8 +43,6 @@ enum Lazer {
 
 /// keyboard input
 fn keyboard_input_system(
-    mut commands: Commands,
-    bullet: Res<Bullet>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<&mut Player>,
     mut lazer_query: Query<&mut Lazer>,
@@ -65,15 +65,6 @@ fn keyboard_input_system(
         {
             *lazer = Lazer::Fire;
         }
-    }
-
-    if keyboard_input.just_pressed(KeyCode::KeyS) {
-        println!("S");
-        commands.spawn(SpriteBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            texture: bullet.texture_handler.clone(),
-            ..default()
-        });
     }
 }
 
@@ -139,14 +130,47 @@ enum Direction {
 }
 
 #[derive(Component)]
+struct AlienBullet;
+fn alien_bullet_movement(
+    time: Res<Time>,
+    mut commands: Commands,
+    mut bullet_query: Query<(Entity, &mut Transform), With<AlienBullet>>,
+) {
+    for (entity, mut transform) in &mut bullet_query {
+        if transform.translation.y < -SCENE_HEIGHT {
+            commands.entity(entity).despawn();
+        } else {
+            transform.translation.y -= ALIEN_BULLET_SPEED * time.delta_seconds();
+        }
+    }
+}
+
+#[derive(Component)]
 struct Alien {
     direction: Direction,
 }
 
-/// alien movement
-fn alien_movement(time: Res<Time>, mut aliens: Query<(&mut Alien, &mut Transform)>) {
+/// alien movement and shooting
+fn alien_movement(
+    time: Res<Time>,
+    mut commands: Commands,
+    mut bullet: ResMut<Bullet>,
+    mut aliens: Query<(&mut Alien, &mut Transform)>,
+) {
     let mut new_direction = None;
     for (alien, mut transform) in &mut aliens {
+        if bullet.instant.elapsed() > Duration::new(1, 0) && rand::random::<f32>() > 0.95 {
+            bullet.instant = Instant::now();
+            commands.spawn((
+                AlienBullet,
+                SpriteBundle {
+                    transform: *transform,
+                    texture: bullet.texture_handler.clone(),
+                    ..default()
+                },
+            ));
+        }
+
         match alien.direction {
             Direction::Left => {
                 transform.translation.x -= ALIENS_SPEED * time.delta_seconds();
@@ -227,6 +251,7 @@ fn hit_detection(
 #[derive(Resource)]
 struct Bullet {
     texture_handler: Handle<Image>,
+    instant: Instant,
 }
 
 fn setup(
@@ -312,7 +337,6 @@ fn setup(
                     TextureAtlas {
                         layout: texture_atlas_layout.clone(),
                         index: *data,
-                        ..default()
                     },
                 ));
             }
@@ -322,7 +346,10 @@ fn setup(
 
     // Loads bullet sprite
     let texture_handler: Handle<Image> = asset_server.load("sprites/drop.png");
-    commands.insert_resource(Bullet { texture_handler });
+    commands.insert_resource(Bullet {
+        texture_handler,
+        instant: Instant::now(),
+    });
 }
 
 fn main() {
@@ -343,6 +370,7 @@ fn main() {
                 player_movement,
                 lazer_movement,
                 alien_movement,
+                alien_bullet_movement,
             ), // now all systems parallel
                // .chain(), // all systems in sequential order to keep it simple
         )
