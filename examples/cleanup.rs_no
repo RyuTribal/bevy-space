@@ -9,15 +9,6 @@ use crate::{
     player::Player,
 };
 
-pub fn cleanup_state<T>(commands: &mut Commands, query: Query<Entity, With<T>>)
-where
-    T: Component,
-{
-    for item in &query {
-        commands.entity(item).despawn_recursive();
-    }
-}
-
 // #[derive(SystemParam)]
 // pub struct Cleanup<'w, 's> {
 //     commands: Commands<'w, 's>,

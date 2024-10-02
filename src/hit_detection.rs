@@ -75,14 +75,19 @@ pub fn hit_detection(
         }
 
         // check aliens
-        for (entity, enemy_transform) in &alien_query {
+        for (alien_entity, enemy_transform) in &alien_query {
             // Collision check
             if in_rect(lazer_transform, enemy_transform, ALIEN_SIZE) {
-                commands.entity(entity).despawn();
+                commands.entity(alien_entity).despawn();
                 *lazer = Lazer::Idle;
                 store.aliens_killed += 1;
                 store.alien_speed += ALIENS_SPEED_KILL;
                 store.score += SCORE_ALIEN;
+                if store.aliens_killed == ALIENS_TOTAL {
+                    println!("-- new wave --");
+                    store.aliens_killed = 0;
+                    store.game_state = GameState::NewWave;
+                }
             }
         }
     }

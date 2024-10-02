@@ -35,6 +35,11 @@ pub const SCORE_ALIEN: u32 = 10;
 pub const STATUS_BAR_FONT_SIZE: f32 = 50.0;
 pub const GAME_OVER_FONT_SIZE: f32 = 200.0;
 pub const INSERT_COIN_FONT_SIZE: f32 = 175.0;
+pub const NEW_WAVE_FONT_SIZE: f32 = 200.0;
+pub const START_FONT_SIZE: f32 = 200.0;
+pub const LEADER_BOARD_FONT_SIZE: f32 = 200.0;
+
+pub const STATE_TRANSITION_DURATION: f32 = 2.0;
 
 pub const NR_LIVES: u8 = 3;
 #[derive(Default, Clone, Copy)]
@@ -44,12 +49,3 @@ pub enum Direction3 {
     #[default]
     None,
 }
-
-// pub fn visibility<T>(query: &mut Query<&mut Visibility, With<T>>, v: Visibility)
-// where
-//     T: Component,
-// {
-//     if let Ok(mut visibility) = query.get_single_mut() {
-//         *visibility = v;
-//     }
-// }

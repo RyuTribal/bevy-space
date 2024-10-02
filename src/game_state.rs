@@ -1,4 +1,9 @@
 use crate::common::*;
+use crate::{
+    alien,
+    bunker::{self, Bunker},
+    player::Player,
+};
 use bevy::prelude::*;
 use std::{default::Default, time::Instant};
 
@@ -9,6 +14,7 @@ pub enum GameState {
     LeaderBoard,
     Start,
     Play,
+    NewWave,
 }
 
 #[derive(Resource)]
@@ -56,4 +62,71 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         texture_handler: Some(asset_server.load("sprites/drop.png")),
         ..default()
     });
+    commands.spawn(StateTransitionTimer(Timer::from_seconds(
+        STATE_TRANSITION_DURATION,
+        TimerMode::Repeating,
+    )));
+}
+
+pub fn cleanup_state<T>(commands: &mut Commands, query: Query<Entity, With<T>>)
+where
+    T: Component,
+{
+    for item in &query {
+        commands.entity(item).despawn_recursive();
+    }
+}
+
+#[derive(Component, Deref, DerefMut)]
+pub struct StateTransitionTimer(Timer);
+
+#[allow(clippy::too_many_arguments)]
+pub fn state_transition_system(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut store: ResMut<Store>,
+    mut query: Query<&mut StateTransitionTimer>,
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_layout: ResMut<Assets<TextureAtlasLayout>>,
+    alien_query: Query<Entity, With<alien::Alien>>,
+    alien_bullet_query: Query<Entity, With<alien::AlienBullet>>,
+    bunker_query: Query<Entity, With<Bunker>>,
+    mut player_query: Query<&mut Player>,
+) {
+    let mut timer = query.single_mut();
+    timer.tick(time.delta());
+    let mut player = player_query.single_mut();
+    if timer.just_finished() {
+        println!("state transition");
+        store.game_state = match store.game_state {
+            GameState::GameOver => GameState::InsertCoin,
+            GameState::InsertCoin => GameState::LeaderBoard,
+            GameState::LeaderBoard => GameState::GameOver,
+            GameState::Start => {
+                println!("--- Start ---");
+                alien::reset(
+                    &mut commands,
+                    &asset_server,
+                    &mut texture_atlas_layout,
+                    alien_query,
+                    alien_bullet_query,
+                );
+                bunker::reset(
+                    &mut commands,
+                    &asset_server,
+                    &mut texture_atlas_layout,
+                    bunker_query,
+                );
+                store.reset();
+                store.lives = NR_LIVES;
+                player.spawn_counter = PLAYER_SPAWN_COUNTER;
+                GameState::Play
+            }
+            GameState::Play => GameState::Play,
+            GameState::NewWave => {
+                println!("transition to new wave");
+                GameState::Play
+            }
+        }
+    }
 }

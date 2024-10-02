@@ -1,4 +1,4 @@
-use crate::cleanup::cleanup_state;
+// use crate::cleanup::cleanup_state;
 use crate::common::*;
 use bevy::prelude::*;
 
@@ -22,7 +22,7 @@ pub struct AnimationIndices {
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(Timer);
 
-pub fn animate_alien_sprite(
+pub fn animate_alien_system(
     time: Res<Time>,
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut TextureAtlas)>,
 ) {

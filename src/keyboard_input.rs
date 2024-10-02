@@ -4,6 +4,7 @@ use bevy::prelude::*;
 /// keyboard input
 pub fn keyboard_input_system(
     mut store: ResMut<Store>,
+    mut timer: Query<&mut StateTransitionTimer>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<&mut Player>,
     mut lazer_query: Query<&mut Lazer>,
@@ -34,6 +35,8 @@ pub fn keyboard_input_system(
         _ => {
             if keyboard_input.just_pressed(KeyCode::Enter) {
                 store.game_state = GameState::Start;
+                let mut timer = timer.single_mut();
+                timer.reset();
             }
         }
     }

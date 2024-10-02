@@ -1,7 +1,7 @@
 //! It displays the current FPS in the top left corner and score top right
 
 use bevy::{
-    color::palettes::css::{GOLD, MAGENTA, RED, YELLOW},
+    color::palettes::css::{DARK_CYAN, GOLD, MAGENTA, RED, YELLOW},
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
@@ -149,8 +149,48 @@ pub fn setup(mut commands: Commands) {
         TextBundle::from_section(
             "   Let's Go", // Ugly, but works
             TextStyle {
-                font_size: INSERT_COIN_FONT_SIZE,
+                font_size: START_FONT_SIZE,
                 color: YELLOW.into(),
+                ..default()
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            align_self: AlignSelf::Center,
+            ..default()
+        }),
+    ));
+
+    // New Wave
+    commands.spawn((
+        Overlay {
+            game_state: GameState::NewWave,
+        },
+        TextBundle::from_section(
+            "   New Wave", // Ugly, but works
+            TextStyle {
+                font_size: NEW_WAVE_FONT_SIZE,
+                color: YELLOW.into(),
+                ..default()
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            align_self: AlignSelf::Center,
+            ..default()
+        }),
+    ));
+
+    // Leader Board
+    commands.spawn((
+        Overlay {
+            game_state: GameState::LeaderBoard,
+        },
+        TextBundle::from_section(
+            " Leader Board", // Ugly, but works
+            TextStyle {
+                font_size: LEADER_BOARD_FONT_SIZE,
+                color: DARK_CYAN.into(),
                 ..default()
             },
         )
