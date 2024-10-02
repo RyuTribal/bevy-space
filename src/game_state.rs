@@ -97,13 +97,11 @@ pub fn state_transition_system(
     timer.tick(time.delta());
     let mut player = player_query.single_mut();
     if timer.just_finished() {
-        println!("state transition");
         store.game_state = match store.game_state {
             GameState::GameOver => GameState::InsertCoin,
             GameState::InsertCoin => GameState::LeaderBoard,
             GameState::LeaderBoard => GameState::GameOver,
-            GameState::Start => {
-                println!("--- Start ---");
+            GameState::Start | GameState::NewWave => {
                 alien::reset(
                     &mut commands,
                     &asset_server,
@@ -117,16 +115,17 @@ pub fn state_transition_system(
                     &mut texture_atlas_layout,
                     bunker_query,
                 );
-                store.reset();
-                store.lives = NR_LIVES;
                 player.spawn_counter = PLAYER_SPAWN_COUNTER;
+                if store.game_state == GameState::Start {
+                    println!("--- Start ---");
+                    store.reset();
+                    store.lives = NR_LIVES;
+                } else {
+                    println!("--- New Wave ---");
+                }
                 GameState::Play
             }
             GameState::Play => GameState::Play,
-            GameState::NewWave => {
-                println!("transition to new wave");
-                GameState::Play
-            }
         }
     }
 }
