@@ -1,4 +1,5 @@
 //! It displays the current FPS in the top left corner and score top right
+use std::f32::consts::PI;
 
 use bevy::{
     color::palettes::css::{DARK_CYAN, GOLD, MAGENTA, RED, YELLOW},
@@ -43,13 +44,13 @@ pub fn setup(mut commands: Commands) {
         ])
         .with_style(Style {
             position_type: PositionType::Absolute,
-            top: Val::Px(5.0),
+            top: Val::Px(60.0),
             left: Val::Px(15.0),
             ..default()
         }),
     ));
 
-    // Status Bas
+    // Status Bar
     commands.spawn((
         StatusBar,
         TextBundle::from_sections([
@@ -80,7 +81,7 @@ pub fn setup(mut commands: Commands) {
                 ..default()
             }),
             TextSection::new(
-                "SCORE: ",
+                "                    SCORE: ",
                 TextStyle {
                     font_size: STATUS_BAR_FONT_SIZE,
                     ..default()
@@ -97,6 +98,7 @@ pub fn setup(mut commands: Commands) {
             position_type: PositionType::Absolute,
             top: Val::Px(5.0),
             right: Val::Px(15.0),
+            // align_self: AlignSelf::Stretch,
             ..default()
         }),
     ));
@@ -111,7 +113,6 @@ pub fn setup(mut commands: Commands) {
             TextStyle {
                 font_size: GAME_OVER_FONT_SIZE,
                 color: RED.into(),
-
                 ..default()
             },
         )
@@ -223,11 +224,13 @@ pub fn score_update_system(store: Res<Store>, mut query: Query<&mut Text, With<S
     }
 }
 
+// Query<&mut Text, With<ColorText>>
+
 pub fn state_update_system(
     store: ResMut<Store>,
-    _timer_query: Query<&StateTransitionTimer>,
+    timer_query: Query<&StateTransitionTimer>,
     mut show_state_query: Query<&mut Visibility, With<ShowState>>,
-    mut game_state_query: Query<(&mut Visibility, &Overlay), Without<ShowState>>,
+    mut game_state_query: Query<(&mut Visibility, &mut Text, &Overlay), Without<ShowState>>,
 ) {
     let mut show_state_visibilty = show_state_query.single_mut();
     *show_state_visibilty = if store.show_state {
@@ -236,7 +239,14 @@ pub fn state_update_system(
         Visibility::Hidden
     };
 
-    for (mut visibility, overlay) in &mut game_state_query {
+    // compute alpha from sinus of ratio between elapse time and timer duration
+    let timer = timer_query.single();
+    let time_elapsed = timer.elapsed().as_secs_f32();
+    let ratio = time_elapsed / STATE_TRANSITION_DURATION;
+    let alpha = (PI * ratio).sin();
+    for (mut visibility, mut text, overlay) in &mut game_state_query {
+        text.sections[0].style.color.set_alpha(alpha);
+
         if overlay.game_state == store.game_state {
             *visibility = Visibility::Visible;
         } else {
