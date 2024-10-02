@@ -1,9 +1,10 @@
-use bevy::{ecs::system::SystemParam, prelude::*};
+// use bevy::ecs::system::SystemParam;
+use bevy::prelude::*;
 
 use crate::{
     alien,
     bunker::{self, Bunker},
-    store::*,
+    game_state::*,
 };
 
 pub fn cleanup_state<T>(commands: &mut Commands, query: Query<Entity, With<T>>)
@@ -54,8 +55,8 @@ pub fn cleanup_system(
     alien_bullet_query: Query<Entity, With<alien::AlienBullet>>,
     bunker_query: Query<Entity, With<Bunker>>,
 ) {
-    if store.game_state == GameState::GameOver {
-        println!("--- reset ---");
+    if store.game_state == GameState::Start {
+        println!("--- Start ---");
         alien::reset(
             &mut commands,
             &asset_server,
@@ -69,6 +70,7 @@ pub fn cleanup_system(
             &mut texture_atlas_layout,
             bunker_query,
         );
-        store.game_state = GameState::InsertCoin;
+        store.reset();
+        store.game_state = GameState::Play;
     }
 }

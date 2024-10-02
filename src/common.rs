@@ -44,11 +44,11 @@ pub enum Direction3 {
     None,
 }
 
-pub fn visibility<T>(query: &mut Query<&mut Visibility, With<T>>, v: Visibility)
-where
-    T: Component,
-{
-    if let Ok(mut visibility) = query.get_single_mut() {
-        *visibility = v;
-    }
-}
+// pub fn visibility<T>(query: &mut Query<&mut Visibility, With<T>>, v: Visibility)
+// where
+//     T: Component,
+// {
+//     if let Ok(mut visibility) = query.get_single_mut() {
+//         *visibility = v;
+//     }
+// }

@@ -2,12 +2,13 @@ use crate::common::*;
 use bevy::prelude::*;
 use std::{default::Default, time::Instant};
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum GameState {
+    GameOver,
     InsertCoin,
     LeaderBoard,
+    Start,
     Play,
-    GameOver,
 }
 
 #[derive(Resource)]

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 use crate::common::Direction3;
-use crate::store::*;
+use crate::game_state::*;
 
 #[derive(Component)]
 pub struct Alien {

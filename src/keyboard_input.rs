@@ -1,4 +1,4 @@
-use crate::{common::*, lazer::Lazer, player::Player, store::*};
+use crate::{common::*, game_state::*, lazer::Lazer, player::Player};
 use bevy::prelude::*;
 
 /// keyboard input
@@ -32,9 +32,8 @@ pub fn keyboard_input_system(
         }
 
         _ => {
-            if keyboard_input.just_pressed(KeyCode::Space) {
-                store.reset();
-                store.game_state = GameState::Play;
+            if keyboard_input.just_pressed(KeyCode::Enter) {
+                store.game_state = GameState::Start;
                 player.spawn_counter = PLAYER_SPAWN_COUNTER;
             }
         }

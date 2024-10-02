@@ -8,26 +8,25 @@ use bevy::{
 
 use crate::{
     common::*,
-    store::{GameState, Store},
+    game_state::{GameState, Store},
 };
 
 //
 #[derive(Component)]
-pub struct FpsText;
+pub struct Fps;
 
 #[derive(Component)]
 pub struct StatusBar;
 
-#[derive(Component)]
-pub struct GameOver;
-
-#[derive(Component)]
-pub struct InsertCoin;
+#[derive(Component, Debug)]
+pub struct Overlay {
+    game_state: GameState,
+}
 
 pub fn setup(mut commands: Commands) {
     // FPS
     commands.spawn((
-        FpsText,
+        Fps,
         TextBundle::from_sections([
             TextSection::new(
                 "FPS: ",
@@ -104,7 +103,9 @@ pub fn setup(mut commands: Commands) {
 
     // GameOver
     commands.spawn((
-        GameOver,
+        Overlay {
+            game_state: GameState::GameOver,
+        },
         TextBundle::from_section(
             "   GAME OVER", // Ugly, but works
             TextStyle {
@@ -122,7 +123,9 @@ pub fn setup(mut commands: Commands) {
     ));
     // Insert Coin
     commands.spawn((
-        InsertCoin,
+        Overlay {
+            game_state: GameState::InsertCoin,
+        },
         TextBundle::from_section(
             "   Press Space\n       to\n   Insert Coin", // Ugly, but works
             TextStyle {
@@ -141,7 +144,7 @@ pub fn setup(mut commands: Commands) {
 
 pub fn text_update_system(
     diagnostics: Res<DiagnosticsStore>,
-    mut query: Query<&mut Text, With<FpsText>>,
+    mut query: Query<&mut Text, With<Fps>>,
 ) {
     for mut text in &mut query {
         if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
@@ -160,65 +163,16 @@ pub fn score_update_system(store: Res<Store>, mut query: Query<&mut Text, With<S
     }
 }
 
-// pub fn spawn_game_over(commands: &mut Commands) {
-//     // GameOver
-//     commands.spawn((
-//         GameOver,
-//         TextBundle::from_section(
-//             "   GAME OVER", // Ugly, but works
-//             TextStyle {
-//                 font_size: GAME_OVER_FONT_SIZE,
-//                 color: RED.into(),
-
-//                 ..default()
-//             },
-//         )
-//         .with_style(Style {
-//             position_type: PositionType::Absolute,
-//             align_self: AlignSelf::Center,
-//             ..default()
-//         }),
-//     ));
-// }
-
-// pub fn spawn_insert_coin(commands: &mut Commands) {
-//     // Insert Coin
-//     commands.spawn((
-//         InsertCoin,
-//         TextBundle::from_section(
-//             "   Press Space\n       to\n   Insert Coin", // Ugly, but works
-//             TextStyle {
-//                 font_size: INSERT_COIN_FONT_SIZE,
-//                 color: MAGENTA.into(),
-//                 ..default()
-//             },
-//         )
-//         .with_style(Style {
-//             position_type: PositionType::Absolute,
-//             align_self: AlignSelf::Center,
-//             ..default()
-//         }),
-//     ));
-// }
-
 pub fn state_update_system(
     store: ResMut<Store>,
 
-    mut insert_coin_query: Query<&mut Visibility, With<InsertCoin>>,
-    // mut game_over_query: Query<&mut Visibility, With<GameOver>>,
+    mut game_state_query: Query<(&mut Visibility, &Overlay), With<Overlay>>,
 ) {
-    visibility(&mut insert_coin_query, Visibility::Hidden);
-    // visibility(&mut game_over_query, Visibility::Hidden);
-
-    match store.game_state {
-        GameState::Play => {}
-        GameState::GameOver => {
-            //  visibility(&mut game_over_query, Visibility::Visible);
+    game_state_query.iter_mut().for_each(|(mut v, o)| {
+        if o.game_state == store.game_state {
+            *v = Visibility::Visible;
+        } else {
+            *v = Visibility::Hidden;
         }
-        GameState::InsertCoin => {
-            visibility(&mut insert_coin_query, Visibility::Visible);
-        }
-
-        _ => {}
-    }
+    });
 }
