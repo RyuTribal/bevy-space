@@ -17,6 +17,9 @@ use crate::{
 pub struct ShowState;
 
 #[derive(Component)]
+pub struct Score;
+
+#[derive(Component)]
 pub struct StatusBar;
 
 #[derive(Component, Debug)]
@@ -46,6 +49,32 @@ pub fn setup(mut commands: Commands) {
             position_type: PositionType::Absolute,
             top: Val::Px(60.0),
             left: Val::Px(15.0),
+            ..default()
+        }),
+    ));
+
+    // Score
+    commands.spawn((
+        Score,
+        TextBundle::from_sections([
+            TextSection::new(
+                "SCORE: ",
+                TextStyle {
+                    font_size: STATUS_BAR_FONT_SIZE,
+                    ..default()
+                },
+            ),
+            // Score
+            TextSection::from_style(TextStyle {
+                font_size: STATUS_BAR_FONT_SIZE,
+                color: GOLD.into(),
+                ..default()
+            }),
+        ])
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            top: Val::Px(5.0),
+            right: Val::Px(15.0),
             ..default()
         }),
     ));
@@ -80,25 +109,11 @@ pub fn setup(mut commands: Commands) {
                 color: GOLD.into(),
                 ..default()
             }),
-            TextSection::new(
-                "                    SCORE: ",
-                TextStyle {
-                    font_size: STATUS_BAR_FONT_SIZE,
-                    ..default()
-                },
-            ),
-            // Score
-            TextSection::from_style(TextStyle {
-                font_size: STATUS_BAR_FONT_SIZE,
-                color: GOLD.into(),
-                ..default()
-            }),
         ])
         .with_style(Style {
             position_type: PositionType::Absolute,
             top: Val::Px(5.0),
-            right: Val::Px(15.0),
-            // align_self: AlignSelf::Stretch,
+            left: Val::Px(15.0),
             ..default()
         }),
     ));
@@ -216,12 +231,17 @@ pub fn text_update_system(
     }
 }
 
-pub fn score_update_system(store: Res<Store>, mut query: Query<&mut Text, With<StatusBar>>) {
-    for mut text in &mut query {
-        text.sections[1].value = format!("{:1}  ", store.lives);
-        text.sections[3].value = format!("{:1}  ", store.wave);
-        text.sections[5].value = format!("{:06}", store.score);
-    }
+pub fn score_update_system(
+    store: Res<Store>,
+    mut status_query: Query<&mut Text, With<StatusBar>>,
+    mut score_query: Query<&mut Text, (With<Score>, Without<StatusBar>)>,
+) {
+    let mut status_text = status_query.single_mut();
+    let mut score_text = score_query.single_mut();
+
+    status_text.sections[1].value = format!("{:1}  ", store.lives);
+    status_text.sections[3].value = format!("{:1}  ", store.wave);
+    score_text.sections[1].value = format!("{:06}", store.score);
 }
 
 // Query<&mut Text, With<ColorText>>
