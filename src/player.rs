@@ -1,23 +1,22 @@
 use crate::common::*;
-use bevy::{prelude::*, render::view::visibility};
+use bevy::prelude::*;
 
-#[derive(Component)]
-pub enum Player {
-    Left,
-    Right,
-    None,
+#[derive(Component, Default)]
+pub struct Player {
+    pub direction: Direction3,
+    pub spawn_counter: u8,
 }
 
 /// player movement
 pub fn player_movement(time: Res<Time>, mut player_query: Query<(&Player, &mut Transform)>) {
-    for (direction, mut transform) in &mut player_query {
-        match *direction {
-            Player::Left => {
+    for (player, mut transform) in &mut player_query {
+        match player.direction {
+            Direction3::Left => {
                 if transform.translation.x > -SCENE_WIDTH {
                     transform.translation.x -= PLAYER_SPEED * time.delta_seconds()
                 }
             }
-            Player::Right => {
+            Direction3::Right => {
                 if transform.translation.x < SCENE_WIDTH {
                     transform.translation.x += PLAYER_SPEED * time.delta_seconds()
                 }
@@ -32,15 +31,19 @@ pub struct BlinkTimer(Timer);
 
 pub fn blink_player_system(
     time: Res<Time>,
-    mut blink_query: Query<(&mut Visibility, &mut BlinkTimer)>,
+    mut blink_query: Query<(&mut Visibility, &mut Player, &mut BlinkTimer)>,
 ) {
-    let (mut visibility, mut timer) = blink_query.single_mut();
+    let (mut visibility, mut player, mut timer) = blink_query.single_mut();
+
     timer.tick(time.delta());
-    if timer.just_finished() {
-        println!("blink");
+    if player.spawn_counter > 0 && timer.just_finished() {
+        // toggle visibility
         if *visibility == Visibility::Visible {
             *visibility = Visibility::Hidden;
         } else {
+            println!("blink spawn_count {}", player.spawn_counter);
+            player.spawn_counter -= 1;
+            println!("blink spawn_count {}", player.spawn_counter);
             *visibility = Visibility::Visible
         }
     }
@@ -48,8 +51,11 @@ pub fn blink_player_system(
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
-        Player::None,
-        BlinkTimer(Timer::from_seconds(0.5, TimerMode::Repeating)),
+        Player::default(),
+        BlinkTimer(Timer::from_seconds(
+            PLAYER_SPAWN_DURATION,
+            TimerMode::Repeating,
+        )),
         SpriteBundle {
             texture: asset_server.load("sprites/space.png"),
             transform: Transform::from_xyz(0., -SCENE_HEIGHT, 0.),

@@ -1,4 +1,4 @@
-use crate::{lazer::Lazer, player::Player, store::*};
+use crate::{common::*, lazer::Lazer, player::Player, store::*};
 use bevy::prelude::*;
 
 /// keyboard input
@@ -8,16 +8,16 @@ pub fn keyboard_input_system(
     mut player_query: Query<&mut Player>,
     mut lazer_query: Query<&mut Lazer>,
 ) {
-    for mut direction in &mut player_query {
-        let mut new_direction = Player::None;
-        if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
-            new_direction = Player::Left;
-        }
-        if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
-            new_direction = Player::Right;
-        }
-        *direction = new_direction;
+    let mut player = player_query.single_mut();
+
+    let mut new_direction = Direction3::None;
+    if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
+        new_direction = Direction3::Left;
     }
+    if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
+        new_direction = Direction3::Right;
+    }
+    player.direction = new_direction;
 
     match store.game_state {
         GameState::Play => {
@@ -35,6 +35,7 @@ pub fn keyboard_input_system(
             if keyboard_input.just_pressed(KeyCode::Space) {
                 store.reset();
                 store.game_state = GameState::Play;
+                player.spawn_counter = PLAYER_SPAWN_COUNTER;
             }
         }
     }

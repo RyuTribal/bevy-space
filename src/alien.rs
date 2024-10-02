@@ -3,17 +3,12 @@ use bevy::prelude::*;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
+use crate::common::Direction3;
 use crate::store::*;
-
-#[derive(Clone, Copy)]
-pub enum Direction {
-    Left,
-    Right,
-}
 
 #[derive(Component)]
 pub struct Alien {
-    pub direction: Direction,
+    pub direction: Direction3,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -74,18 +69,19 @@ pub fn alien_movement(
 
     for (alien, mut transform) in &mut aliens {
         match alien.direction {
-            Direction::Left => {
+            Direction3::Left => {
                 transform.translation.x -= store.alien_speed * delta;
                 if transform.translation.x < -SCENE_WIDTH {
-                    new_direction = Some(Direction::Right);
+                    new_direction = Some(Direction3::Right);
                 }
             }
-            Direction::Right => {
+            Direction3::Right => {
                 transform.translation.x += store.alien_speed * delta;
                 if transform.translation.x > SCENE_WIDTH {
-                    new_direction = Some(Direction::Left);
+                    new_direction = Some(Direction3::Left);
                 }
             }
+            _ => {}
         }
     }
 
@@ -162,7 +158,7 @@ pub fn setup(
         for x in 0..ALIENS_COL {
             aliens.push((
                 Alien {
-                    direction: Direction::Right,
+                    direction: Direction3::Right,
                 },
                 SpriteBundle {
                     transform: Transform::from_xyz(

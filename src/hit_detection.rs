@@ -16,7 +16,7 @@ pub fn hit_detection(
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
     mut bunker_query: Query<(&mut TextureAtlas, Entity, &Transform), With<Bunker>>,
     alien_bullet_query: Query<(Entity, &Transform), With<AlienBullet>>,
-    player_query: Query<&Transform, With<Player>>,
+    mut player_query: Query<(&mut Player, &Transform), With<Player>>,
 ) {
     // check if point:&Transform is in &target:Transform with size:Vec2
     #[inline(always)]
@@ -36,18 +36,20 @@ pub fn hit_detection(
         }
     }
 
-    // get a player_transform singleton
-    let player_transform = player_query.single();
+    // get a player singleton
+    let (mut player, player_transform) = player_query.single_mut();
     // alien bullets
     for (bullet_entity, bullet_transform) in &alien_bullet_query {
         // hit player
         if in_rect(bullet_transform, player_transform, PLAYER_SIZE) {
             commands.entity(bullet_entity).despawn();
-            if store.lives > 0 {
+            if player.spawn_counter == 0 && store.lives > 0 {
                 store.lives -= 1;
                 if store.lives == 0 {
                     overlay::spawn_game_over(&mut commands);
                     store.game_state = GameState::GameOver;
+                } else {
+                    player.spawn_counter = PLAYER_SPAWN_COUNTER;
                 }
             }
         }
