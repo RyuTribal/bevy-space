@@ -2,15 +2,17 @@ use crate::{
     alien::*,
     bunker::*,
     common::*,
-    game_state::{GameState, Store},
+    game_state::{GameState, StateTransitionTimer, Store},
     lazer::Lazer,
     player::Player,
 };
 use bevy::prelude::*;
 
+#[allow(clippy::too_many_arguments)]
 pub fn hit_detection(
     mut store: ResMut<Store>,
     mut commands: Commands,
+    mut timer: Query<&mut StateTransitionTimer>,
     alien_query: Query<(Entity, &Transform), With<Alien>>,
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
     mut bunker_query: Query<(&mut TextureAtlas, Entity, &Transform), With<Bunker>>,
@@ -87,6 +89,8 @@ pub fn hit_detection(
                     println!("-- new wave --");
                     store.aliens_killed = 0;
                     store.game_state = GameState::NewWave;
+                    let mut timer = timer.single_mut();
+                    timer.reset();
                 }
             }
         }
