@@ -23,6 +23,7 @@ pub struct Store {
     pub instant: Instant,
     pub score: u32,
     pub score_new_life: u32,
+    pub bullet_interval: f32,
     pub aliens_killed: u8,
     pub alien_speed: f32,
     pub wave: u8,
@@ -39,6 +40,7 @@ impl Default for Store {
             instant: Instant::now(),
             score: 0,
             score_new_life: 100,
+            bullet_interval: ALIEN_BULLET_INTERVAL,
             aliens_killed: 0,
             alien_speed: ALIENS_SPEED_START,
             wave: 1,
@@ -134,7 +136,9 @@ pub fn state_transition_system(
                     store.lives = NR_LIVES;
                 } else {
                     debug!("--- New Wave ---");
+                    store.alien_speed = ALIENS_SPEED_START + store.wave as f32 * ALIENS_SPEED_WAVE;
                     store.wave += 1;
+                    store.bullet_interval *= BULLET_INTERVAL_WAVE;
                 }
                 GameState::Play
             }

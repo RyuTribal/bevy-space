@@ -123,8 +123,8 @@ pub fn alien_movement(
 
     for (_, transform) in &mut aliens {
         // drop bullet?
-        if store.instant.elapsed() > Duration::from_millis(500)
-            && rand::random::<f32>() < 0.1f32 / (hm.len() as f32)
+        if store.instant.elapsed() > Duration::from_secs_f32(store.bullet_interval)
+            && rand::random::<f32>() < 1.0f32 / (hm.len() as f32)
         {
             store.instant = Instant::now();
             trace!("bullet spawned {:?}", store.instant);
