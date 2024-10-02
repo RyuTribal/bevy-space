@@ -92,8 +92,10 @@ pub fn alien_movement(
     // set new direction for all aliens
     if let Some(direction) = new_direction {
         for (mut alien, mut transform) in &mut aliens {
-            transform.translation.y -= ALIEN_SIZE.y;
             alien.direction = direction;
+            if store.game_state == GameState::Play {
+                transform.translation.y -= ALIEN_SIZE.y;
+            }
         }
     }
 

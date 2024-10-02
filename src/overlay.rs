@@ -1,12 +1,15 @@
 //! It displays the current FPS in the top left corner and score top right
 
 use bevy::{
-    color::palettes::css::{GOLD, RED},
+    color::palettes::css::{GOLD, MAGENTA, RED},
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
 
-use crate::{common::*, store::Store};
+use crate::{
+    common::*,
+    store::{GameState, Store},
+};
 
 //
 #[derive(Component)]
@@ -17,6 +20,9 @@ pub struct StatusBar;
 
 #[derive(Component)]
 pub struct GameOver;
+
+#[derive(Component)]
+pub struct InsertCoin;
 
 pub fn setup(mut commands: Commands) {
     // FPS
@@ -95,26 +101,7 @@ pub fn setup(mut commands: Commands) {
             ..default()
         }),
     ));
-
-    // GameOver
-    commands.spawn((
-        GameOver,
-        TextBundle::from_section(
-            "   GAME OVER", // Ugly, but works
-            TextStyle {
-                font_size: GAME_OVER_FONT_SIZE,
-                color: RED.into(),
-
-                ..default()
-            },
-        )
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            align_self: AlignSelf::Center,
-            // align_content: AlignContent::Center,
-            ..default()
-        }),
-    ));
+    spawn_insert_coin(&mut commands);
 }
 
 pub fn text_update_system(
@@ -135,5 +122,67 @@ pub fn score_update_system(store: Res<Store>, mut query: Query<&mut Text, With<S
         text.sections[1].value = format!("{:1}  ", store.lives);
         text.sections[3].value = format!("{:1}  ", store.wave);
         text.sections[5].value = format!("{:06}", store.score);
+    }
+}
+
+pub fn spawn_game_over(commands: &mut Commands) {
+    // GameOver
+    commands.spawn((
+        GameOver,
+        TextBundle::from_section(
+            "   GAME OVER", // Ugly, but works
+            TextStyle {
+                font_size: GAME_OVER_FONT_SIZE,
+                color: RED.into(),
+
+                ..default()
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            align_self: AlignSelf::Center,
+            ..default()
+        }),
+    ));
+}
+
+pub fn spawn_insert_coin(commands: &mut Commands) {
+    // Insert Coin
+    commands.spawn((
+        InsertCoin,
+        TextBundle::from_section(
+            "   Press Space\n       to\n   Insert Coin", // Ugly, but works
+            TextStyle {
+                font_size: INSERT_COIN_FONT_SIZE,
+                color: MAGENTA.into(),
+
+                ..default()
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            align_self: AlignSelf::Center,
+            ..default()
+        }),
+    ));
+}
+
+pub fn state_update_system(
+    store: ResMut<Store>,
+    mut commands: Commands,
+
+    insert_coin_query: Query<Entity, With<InsertCoin>>,
+    game_over_query: Query<Entity, With<GameOver>>,
+) {
+    match store.game_state {
+        GameState::Play => {
+            let _ = insert_coin_query
+                .get_single()
+                .map(|entity| commands.entity(entity).despawn());
+            let _ = game_over_query
+                .get_single()
+                .map(|entity| commands.entity(entity).despawn());
+        }
+        _ => {}
     }
 }

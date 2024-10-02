@@ -1,4 +1,12 @@
-use crate::{alien::*, bunker::*, common::*, lazer::Lazer, player::Player, store::Store};
+use crate::{
+    alien::*,
+    bunker::*,
+    common::*,
+    lazer::Lazer,
+    overlay,
+    player::Player,
+    store::{GameState, Store},
+};
 use bevy::prelude::*;
 
 pub fn hit_detection(
@@ -29,30 +37,33 @@ pub fn hit_detection(
     }
 
     // get a player_transform singleton
-    let mut player_iterator = player_query.iter();
-    let player_transform = player_iterator.next().unwrap();
-    assert!(player_iterator.next().is_none());
-
+    let player_transform = player_query.single();
     // alien bullets
     for (bullet_entity, bullet_transform) in &alien_bullet_query {
         // hit player
         if in_rect(bullet_transform, player_transform, PLAYER_SIZE) {
-            error!("you died");
             commands.entity(bullet_entity).despawn();
+            if store.lives > 0 {
+                store.lives -= 1;
+                if store.lives == 0 {
+                    overlay::spawn_game_over(&mut commands);
+                    store.game_state = GameState::GameOver;
+                }
+            }
         }
         // hit bunker?
         for (bunker_atlas, bunker_entity, bunker_transform) in &mut bunker_query {
             if in_rect(bullet_transform, bunker_transform, BUNKER_SIZE) {
-                hit_bunker(&mut commands, bunker_entity, bunker_atlas);
                 commands.entity(bullet_entity).despawn();
+                if store.game_state == GameState::Play {
+                    hit_bunker(&mut commands, bunker_entity, bunker_atlas);
+                }
             }
         }
     }
 
     // get lazer singleton
-    let mut lazer_iterator = lazer_query.iter_mut();
-    let (mut lazer, lazer_transform) = lazer_iterator.next().unwrap();
-    assert!(lazer_iterator.next().is_none());
+    let (mut lazer, lazer_transform) = lazer_query.get_single_mut().unwrap();
 
     if *lazer == Lazer::Fired {
         // check bunkers

@@ -2,6 +2,7 @@ use crate::common::*;
 use bevy::prelude::*;
 use std::{default::Default, time::Instant};
 
+#[derive(PartialEq, Clone, Copy)]
 pub enum GameState {
     InsertCoin,
     LeaderBoard,
@@ -39,9 +40,9 @@ impl Default for Store {
 }
 
 impl Store {
-    pub fn reset(self) -> Store {
-        Store {
-            texture_handler: self.texture_handler,
+    pub fn reset(&mut self) {
+        *self = Self {
+            texture_handler: self.texture_handler.clone(), // will this leak?
             ..default()
         }
     }

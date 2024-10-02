@@ -33,7 +33,8 @@ pub fn keyboard_input_system(
 
         _ => {
             if keyboard_input.just_pressed(KeyCode::Space) {
-                store.game_state = GameState::Play
+                store.reset();
+                store.game_state = GameState::Play;
             }
         }
     }
