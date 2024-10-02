@@ -46,7 +46,6 @@ pub fn hit_detection(
             if player.spawn_counter == 0 && store.lives > 0 {
                 store.lives -= 1;
                 if store.lives == 0 {
-                    overlay::spawn_game_over(&mut commands);
                     store.game_state = GameState::GameOver;
                 } else {
                     player.spawn_counter = PLAYER_SPAWN_COUNTER;

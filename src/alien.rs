@@ -1,5 +1,7 @@
+use crate::cleanup::cleanup_state;
 use crate::common::*;
 use bevy::prelude::*;
+
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
@@ -140,10 +142,10 @@ pub fn alien_movement(
 }
 
 // Builds and spawns the Alien sprites
-pub fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+pub fn setup_borrowed(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    texture_atlas_layouts: &mut ResMut<Assets<TextureAtlasLayout>>,
 ) {
     // Builds and spawns the Alien sprites
     let texture = asset_server.load("sprites/alien.png");
@@ -179,4 +181,24 @@ pub fn setup(
         }
     }
     commands.spawn_batch(aliens);
+}
+
+pub fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
+    setup_borrowed(&mut commands, &asset_server, &mut texture_atlas_layouts);
+}
+// reset the aliens
+pub fn reset(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    texture_atlas_layout: &mut ResMut<Assets<TextureAtlasLayout>>,
+    alien_query: Query<Entity, With<Alien>>,
+    alien_bullet_query: Query<Entity, With<AlienBullet>>,
+) {
+    cleanup_state(commands, alien_query);
+    cleanup_state(commands, alien_bullet_query);
+    setup_borrowed(commands, asset_server, texture_atlas_layout);
 }

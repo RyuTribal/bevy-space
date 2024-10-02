@@ -1,13 +1,13 @@
-use crate::common::*;
+use crate::{cleanup::*, common::*};
 use bevy::prelude::*;
 
 #[derive(Component, Clone, Copy)]
 pub struct Bunker;
 
-pub fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+pub fn setup_borrowed(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    texture_atlas_layouts: &mut ResMut<Assets<TextureAtlasLayout>>,
 ) {
     // Builds and spawns the bunker sprites
     let texture = asset_server.load("sprites/defense.png");
@@ -49,4 +49,23 @@ pub fn setup(
         }
         commands.spawn_batch(bunker);
     }
+}
+
+pub fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
+    setup_borrowed(&mut commands, &asset_server, &mut texture_atlas_layouts);
+}
+
+pub fn reset(
+    // reset the bunkers
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    texture_atlas_layout: &mut ResMut<Assets<TextureAtlasLayout>>,
+    bunker_query: Query<Entity, With<Bunker>>,
+) {
+    cleanup_state(commands, bunker_query);
+    setup_borrowed(commands, asset_server, texture_atlas_layout);
 }

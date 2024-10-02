@@ -101,7 +101,42 @@ pub fn setup(mut commands: Commands) {
             ..default()
         }),
     ));
-    spawn_insert_coin(&mut commands);
+
+    // GameOver
+    commands.spawn((
+        GameOver,
+        TextBundle::from_section(
+            "   GAME OVER", // Ugly, but works
+            TextStyle {
+                font_size: GAME_OVER_FONT_SIZE,
+                color: RED.into(),
+
+                ..default()
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            align_self: AlignSelf::Center,
+            ..default()
+        }),
+    ));
+    // Insert Coin
+    commands.spawn((
+        InsertCoin,
+        TextBundle::from_section(
+            "   Press Space\n       to\n   Insert Coin", // Ugly, but works
+            TextStyle {
+                font_size: INSERT_COIN_FONT_SIZE,
+                color: MAGENTA.into(),
+                ..default()
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            align_self: AlignSelf::Center,
+            ..default()
+        }),
+    ));
 }
 
 pub fn text_update_system(
@@ -125,64 +160,65 @@ pub fn score_update_system(store: Res<Store>, mut query: Query<&mut Text, With<S
     }
 }
 
-pub fn spawn_game_over(commands: &mut Commands) {
-    // GameOver
-    commands.spawn((
-        GameOver,
-        TextBundle::from_section(
-            "   GAME OVER", // Ugly, but works
-            TextStyle {
-                font_size: GAME_OVER_FONT_SIZE,
-                color: RED.into(),
+// pub fn spawn_game_over(commands: &mut Commands) {
+//     // GameOver
+//     commands.spawn((
+//         GameOver,
+//         TextBundle::from_section(
+//             "   GAME OVER", // Ugly, but works
+//             TextStyle {
+//                 font_size: GAME_OVER_FONT_SIZE,
+//                 color: RED.into(),
 
-                ..default()
-            },
-        )
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            align_self: AlignSelf::Center,
-            ..default()
-        }),
-    ));
-}
+//                 ..default()
+//             },
+//         )
+//         .with_style(Style {
+//             position_type: PositionType::Absolute,
+//             align_self: AlignSelf::Center,
+//             ..default()
+//         }),
+//     ));
+// }
 
-pub fn spawn_insert_coin(commands: &mut Commands) {
-    // Insert Coin
-    commands.spawn((
-        InsertCoin,
-        TextBundle::from_section(
-            "   Press Space\n       to\n   Insert Coin", // Ugly, but works
-            TextStyle {
-                font_size: INSERT_COIN_FONT_SIZE,
-                color: MAGENTA.into(),
-
-                ..default()
-            },
-        )
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            align_self: AlignSelf::Center,
-            ..default()
-        }),
-    ));
-}
+// pub fn spawn_insert_coin(commands: &mut Commands) {
+//     // Insert Coin
+//     commands.spawn((
+//         InsertCoin,
+//         TextBundle::from_section(
+//             "   Press Space\n       to\n   Insert Coin", // Ugly, but works
+//             TextStyle {
+//                 font_size: INSERT_COIN_FONT_SIZE,
+//                 color: MAGENTA.into(),
+//                 ..default()
+//             },
+//         )
+//         .with_style(Style {
+//             position_type: PositionType::Absolute,
+//             align_self: AlignSelf::Center,
+//             ..default()
+//         }),
+//     ));
+// }
 
 pub fn state_update_system(
     store: ResMut<Store>,
-    mut commands: Commands,
 
-    insert_coin_query: Query<Entity, With<InsertCoin>>,
-    game_over_query: Query<Entity, With<GameOver>>,
+    mut insert_coin_query: Query<&mut Visibility, With<InsertCoin>>,
+    // mut game_over_query: Query<&mut Visibility, With<GameOver>>,
 ) {
+    visibility(&mut insert_coin_query, Visibility::Hidden);
+    // visibility(&mut game_over_query, Visibility::Hidden);
+
     match store.game_state {
-        GameState::Play => {
-            let _ = insert_coin_query
-                .get_single()
-                .map(|entity| commands.entity(entity).despawn());
-            let _ = game_over_query
-                .get_single()
-                .map(|entity| commands.entity(entity).despawn());
+        GameState::Play => {}
+        GameState::GameOver => {
+            //  visibility(&mut game_over_query, Visibility::Visible);
         }
+        GameState::InsertCoin => {
+            visibility(&mut insert_coin_query, Visibility::Visible);
+        }
+
         _ => {}
     }
 }
