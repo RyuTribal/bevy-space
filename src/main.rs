@@ -44,6 +44,7 @@ fn main() {
                 keyboard_input::keyboard_input_system,
                 hit_detection::hit_detection,
                 player::player_movement,
+                player::blink_player_system,
                 lazer::lazer_movement,
                 alien::alien_movement,
                 alien::alien_bullet_movement,
