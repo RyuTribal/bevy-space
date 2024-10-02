@@ -4,6 +4,15 @@ use bevy::prelude::*;
 #[derive(Component, Clone, Copy)]
 pub struct Bunker;
 
+#[inline(always)]
+pub fn hit_bunker(commands: &mut Commands, entity: Entity, mut atlas: Mut<TextureAtlas>) {
+    if atlas.index < 10 {
+        atlas.index += 5;
+    } else {
+        commands.entity(entity).despawn();
+    }
+}
+
 pub fn setup_borrowed(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,

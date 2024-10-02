@@ -129,11 +129,11 @@ pub fn state_transition_system(
                 );
                 player.spawn_counter = PLAYER_SPAWN_COUNTER; // do we want this?
                 if store.game_state == GameState::Start {
-                    println!("--- Start ---");
+                    debug!("--- Start ---");
                     store.reset();
                     store.lives = NR_LIVES;
                 } else {
-                    println!("--- New Wave ---");
+                    debug!("--- New Wave ---");
                     store.wave += 1;
                 }
                 GameState::Play

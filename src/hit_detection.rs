@@ -12,7 +12,7 @@ use bevy::prelude::*;
 pub fn hit_detection(
     mut store: ResMut<Store>,
     mut commands: Commands,
-    mut timer: Query<&mut StateTransitionTimer>,
+    mut timer_query: Query<&mut StateTransitionTimer>,
     alien_query: Query<(Entity, &Transform), With<Alien>>,
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
     mut bunker_query: Query<(&mut TextureAtlas, Entity, &Transform), With<Bunker>>,
@@ -28,14 +28,7 @@ pub fn hit_detection(
         rect.contains(p_vec)
     }
 
-    #[inline(always)]
-    fn hit_bunker(commands: &mut Commands, entity: Entity, mut atlas: Mut<TextureAtlas>) {
-        if atlas.index < 10 {
-            atlas.index += 5;
-        } else {
-            commands.entity(entity).despawn();
-        }
-    }
+    let mut timer = timer_query.single_mut();
 
     // get a player singleton
     let (mut player, player_transform) = player_query.single_mut();
@@ -48,6 +41,7 @@ pub fn hit_detection(
                 store.lives -= 1;
                 if store.lives == 0 {
                     store.game_state = GameState::GameOver;
+                    timer.reset();
                 } else {
                     player.spawn_counter = PLAYER_SPAWN_COUNTER;
                 }
@@ -86,10 +80,9 @@ pub fn hit_detection(
                 store.alien_speed += ALIENS_SPEED_KILL;
                 store.score += SCORE_ALIEN;
                 if store.aliens_killed == ALIENS_TOTAL {
-                    println!("-- new wave --");
+                    debug!("-- new wave --");
                     store.aliens_killed = 0;
                     store.game_state = GameState::NewWave;
-                    let mut timer = timer.single_mut();
                     timer.reset();
                 }
             }
