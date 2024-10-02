@@ -1,8 +1,9 @@
-use crate::{lazer::Lazer, player::Player};
+use crate::{lazer::Lazer, player::Player, store::*};
 use bevy::prelude::*;
 
 /// keyboard input
 pub fn keyboard_input_system(
+    mut store: ResMut<Store>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<&mut Player>,
     mut lazer_query: Query<&mut Lazer>,
@@ -18,12 +19,22 @@ pub fn keyboard_input_system(
         *direction = new_direction;
     }
 
-    for mut lazer in &mut lazer_query {
-        if *lazer == Lazer::Idle
-            && (keyboard_input.just_pressed(KeyCode::Space)
-                || keyboard_input.pressed(KeyCode::ArrowUp))
-        {
-            *lazer = Lazer::Fire;
+    match store.game_state {
+        GameState::Play => {
+            for mut lazer in &mut lazer_query {
+                if *lazer == Lazer::Idle
+                    && (keyboard_input.just_pressed(KeyCode::Space)
+                        || keyboard_input.pressed(KeyCode::ArrowUp))
+                {
+                    *lazer = Lazer::Fire;
+                }
+            }
+        }
+
+        _ => {
+            if keyboard_input.just_pressed(KeyCode::Space) {
+                store.game_state = GameState::Play
+            }
         }
     }
 }

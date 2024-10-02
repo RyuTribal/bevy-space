@@ -2,6 +2,13 @@ use crate::common::*;
 use bevy::prelude::*;
 use std::{default::Default, time::Instant};
 
+pub enum GameState {
+    InsertCoin,
+    LeaderBoard,
+    Play,
+    GameOver,
+}
+
 #[derive(Resource)]
 pub struct Store {
     pub texture_handler: Option<Handle<Image>>,
@@ -11,6 +18,8 @@ pub struct Store {
     pub alien_speed: f32,
     pub wave: u8,
     pub lives: u8,
+    pub player_count_down: f32,
+    pub game_state: GameState,
 }
 
 impl Default for Store {
@@ -23,6 +32,8 @@ impl Default for Store {
             alien_speed: ALIENS_SPEED_START,
             wave: 1,
             lives: 3,
+            player_count_down: 3.0,
+            game_state: GameState::InsertCoin,
         }
     }
 }

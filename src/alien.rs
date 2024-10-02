@@ -1,5 +1,6 @@
 use crate::common::*;
 use bevy::prelude::*;
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 use crate::store::*;
@@ -68,10 +69,59 @@ pub fn alien_movement(
     mut aliens: Query<(&mut Alien, &mut Transform)>,
 ) {
     let mut new_direction = None;
+
+    let delta = time.delta_seconds();
+
     for (alien, mut transform) in &mut aliens {
+        match alien.direction {
+            Direction::Left => {
+                transform.translation.x -= store.alien_speed * delta;
+                if transform.translation.x < -SCENE_WIDTH {
+                    new_direction = Some(Direction::Right);
+                }
+            }
+            Direction::Right => {
+                transform.translation.x += store.alien_speed * delta;
+                if transform.translation.x > SCENE_WIDTH {
+                    new_direction = Some(Direction::Left);
+                }
+            }
+        }
+    }
+
+    // set new direction for all aliens
+    if let Some(direction) = new_direction {
+        for (mut alien, mut transform) in &mut aliens {
+            transform.translation.y -= ALIEN_SIZE.y;
+            alien.direction = direction;
+        }
+    }
+
+    // calculate the lowest y value among aliens (lowest row)
+    let mut hm = HashMap::new();
+    aliens.iter().for_each(|(_, t)| {
+        let Vec3 { x, y, z: _ } = t.translation;
+        let x = x as i32;
+        if let Some(y_min) = hm.get(&x) {
+            if y < *y_min {
+                hm.insert(x, y);
+            }
+        } else {
+            hm.insert(x, y);
+        }
+    });
+
+    // filter out candidates at lowest row for each column
+    let mut aliens = aliens.iter_mut().filter(|(_, t)| {
+        let Vec3 { x, y, z: _ } = t.translation;
+        let x = x as i32;
+        &y == hm.get(&x).unwrap()
+    });
+
+    for (_, transform) in &mut aliens {
         // drop bullet?
-        if store.instant.elapsed() > Duration::from_millis(200)
-            && rand::random::<f32>() < 0.25f32 / ((1 + ALIENS_TOTAL - store.aliens_killed) as f32)
+        if store.instant.elapsed() > Duration::from_millis(500)
+            && rand::random::<f32>() < 0.1f32 / (hm.len() as f32)
         {
             store.instant = Instant::now();
             trace!("bullet spawned {:?}", store.instant);
@@ -87,29 +137,6 @@ pub fn alien_movement(
                     ..default()
                 },
             ));
-        }
-
-        match alien.direction {
-            Direction::Left => {
-                transform.translation.x -= store.alien_speed * time.delta_seconds();
-                if transform.translation.x < -SCENE_WIDTH {
-                    new_direction = Some(Direction::Right);
-                }
-            }
-            Direction::Right => {
-                transform.translation.x += store.alien_speed * time.delta_seconds();
-                if transform.translation.x > SCENE_WIDTH {
-                    new_direction = Some(Direction::Left);
-                }
-            }
-        }
-    }
-
-    // set new direction for all aliens
-    if let Some(direction) = new_direction {
-        for (mut alien, mut transform) in &mut aliens {
-            transform.translation.y -= ALIEN_SIZE.y;
-            alien.direction = direction;
         }
     }
 }
