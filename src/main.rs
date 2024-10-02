@@ -54,8 +54,7 @@ fn main() {
                 overlay::score_update_system,
                 overlay::state_update_system,
                 cleanup::cleanup_system,
-            ), // now all systems parallel
-               // .chain(), // all systems in sequential order to keep it simple
+            ),
         )
         .run();
 }

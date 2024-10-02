@@ -33,7 +33,7 @@ impl Default for Store {
             aliens_killed: 0,
             alien_speed: ALIENS_SPEED_START,
             wave: 1,
-            lives: 3,
+            lives: 0,
             player_count_down: 3.0,
             game_state: GameState::InsertCoin,
         }

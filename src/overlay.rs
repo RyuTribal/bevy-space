@@ -1,7 +1,7 @@
 //! It displays the current FPS in the top left corner and score top right
 
 use bevy::{
-    color::palettes::css::{GOLD, MAGENTA, RED},
+    color::palettes::css::{GOLD, MAGENTA, RED, YELLOW},
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
@@ -127,10 +127,30 @@ pub fn setup(mut commands: Commands) {
             game_state: GameState::InsertCoin,
         },
         TextBundle::from_section(
-            "   Press Space\n       to\n   Insert Coin", // Ugly, but works
+            "   Press Enter\n       to\n   Insert Coin", // Ugly, but works
             TextStyle {
                 font_size: INSERT_COIN_FONT_SIZE,
                 color: MAGENTA.into(),
+                ..default()
+            },
+        )
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            align_self: AlignSelf::Center,
+            ..default()
+        }),
+    ));
+
+    // Start
+    commands.spawn((
+        Overlay {
+            game_state: GameState::Start,
+        },
+        TextBundle::from_section(
+            "   Let's Go", // Ugly, but works
+            TextStyle {
+                font_size: INSERT_COIN_FONT_SIZE,
+                color: YELLOW.into(),
                 ..default()
             },
         )
@@ -165,14 +185,13 @@ pub fn score_update_system(store: Res<Store>, mut query: Query<&mut Text, With<S
 
 pub fn state_update_system(
     store: ResMut<Store>,
-
-    mut game_state_query: Query<(&mut Visibility, &Overlay), With<Overlay>>,
+    mut game_state_query: Query<(&mut Visibility, &Overlay)>,
 ) {
-    game_state_query.iter_mut().for_each(|(mut v, o)| {
-        if o.game_state == store.game_state {
-            *v = Visibility::Visible;
+    for (mut visibility, overlay) in &mut game_state_query {
+        if overlay.game_state == store.game_state {
+            *visibility = Visibility::Visible;
         } else {
-            *v = Visibility::Hidden;
+            *visibility = Visibility::Hidden;
         }
-    });
+    }
 }

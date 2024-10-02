@@ -41,9 +41,7 @@ pub fn blink_player_system(
         if *visibility == Visibility::Visible {
             *visibility = Visibility::Hidden;
         } else {
-            println!("blink spawn_count {}", player.spawn_counter);
             player.spawn_counter -= 1;
-            println!("blink spawn_count {}", player.spawn_counter);
             *visibility = Visibility::Visible
         }
     }

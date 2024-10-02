@@ -36,6 +36,7 @@ pub const STATUS_BAR_FONT_SIZE: f32 = 50.0;
 pub const GAME_OVER_FONT_SIZE: f32 = 200.0;
 pub const INSERT_COIN_FONT_SIZE: f32 = 175.0;
 
+pub const NR_LIVES: u8 = 3;
 #[derive(Default, Clone, Copy)]
 pub enum Direction3 {
     Left,

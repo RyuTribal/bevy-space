@@ -1,10 +1,12 @@
 // use bevy::ecs::system::SystemParam;
+use crate::common::*;
 use bevy::prelude::*;
 
 use crate::{
     alien,
     bunker::{self, Bunker},
     game_state::*,
+    player::Player,
 };
 
 pub fn cleanup_state<T>(commands: &mut Commands, query: Query<Entity, With<T>>)
@@ -46,6 +48,7 @@ where
 //     }
 // }
 
+#[allow(clippy::too_many_arguments)]
 pub fn cleanup_system(
     mut commands: Commands,
     mut store: ResMut<Store>,
@@ -54,7 +57,9 @@ pub fn cleanup_system(
     alien_query: Query<Entity, With<alien::Alien>>,
     alien_bullet_query: Query<Entity, With<alien::AlienBullet>>,
     bunker_query: Query<Entity, With<Bunker>>,
+    mut player_query: Query<&mut Player>,
 ) {
+    let mut player = player_query.single_mut();
     if store.game_state == GameState::Start {
         println!("--- Start ---");
         alien::reset(
@@ -72,5 +77,7 @@ pub fn cleanup_system(
         );
         store.reset();
         store.game_state = GameState::Play;
+        store.lives = NR_LIVES;
+        player.spawn_counter = PLAYER_SPAWN_COUNTER;
     }
 }

@@ -69,7 +69,10 @@ pub fn alien_movement(
 
     let delta = time.delta_seconds();
 
+    let mut y_min = f32::MAX;
+
     for (alien, mut transform) in &mut aliens {
+        y_min = y_min.min(transform.translation.y);
         match alien.direction {
             Direction3::Left => {
                 transform.translation.x -= store.alien_speed * delta;
@@ -91,7 +94,7 @@ pub fn alien_movement(
     if let Some(direction) = new_direction {
         for (mut alien, mut transform) in &mut aliens {
             alien.direction = direction;
-            if store.game_state == GameState::Play {
+            if store.game_state == GameState::Play && y_min > BUNKERS_Y - SCENE_HEIGHT {
                 transform.translation.y -= ALIEN_SIZE.y;
             }
         }
