@@ -6,11 +6,16 @@ Small experiment to assess complexity of getting a simple thing done from scratc
 
 So far:
 
-- Basically a working game already (in less than two days)
+- Basically a working game in three days.
 
 Todo:
 
-- Game menu and such
+- Mystery ship, possibly shooting homing missiles
+- Joy stick control
+- Particle system for bullet traces and explosions on impact
+- Stretch goals
+  - Screen projection shader to replicate CRT
+  - Screen blur and suitable noise effects to get low quality video, VCR like shaders
 
 ## Tools used
 
@@ -29,3 +34,8 @@ See `.cargo/config.toml`
 - `mold` linker (for compilation speed)
 
 All in all, after initial build, compile times are within seconds.
+
+## How to play
+
+- A/Left arrow, D/Right arrow to move
+- Space/Up arrow to shoot
