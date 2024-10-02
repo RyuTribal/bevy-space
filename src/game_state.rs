@@ -22,12 +22,14 @@ pub struct Store {
     pub texture_handler: Option<Handle<Image>>,
     pub instant: Instant,
     pub score: u32,
+    pub score_new_life: u32,
     pub aliens_killed: u8,
     pub alien_speed: f32,
     pub wave: u8,
     pub lives: u8,
     pub player_count_down: f32,
     pub game_state: GameState,
+    pub show_state: bool,
 }
 
 impl Default for Store {
@@ -36,12 +38,14 @@ impl Default for Store {
             texture_handler: None,
             instant: Instant::now(),
             score: 0,
+            score_new_life: 100,
             aliens_killed: 0,
             alien_speed: ALIENS_SPEED_START,
             wave: 1,
             lives: 0,
             player_count_down: 3.0,
             game_state: GameState::InsertCoin,
+            show_state: false,
         }
     }
 }
@@ -95,6 +99,14 @@ pub fn state_transition_system(
 ) {
     let mut timer = query.single_mut();
     timer.tick(time.delta());
+
+    // extra life(s)
+    if store.score >= store.score_new_life {
+        store.lives += 1;
+        store.score_new_life += (store.score_new_life as f32 * SCORE_SCALE) as u32;
+    }
+
+    // state transition
     let mut player = player_query.single_mut();
     if timer.just_finished() {
         store.game_state = match store.game_state {
@@ -115,13 +127,14 @@ pub fn state_transition_system(
                     &mut texture_atlas_layout,
                     bunker_query,
                 );
-                player.spawn_counter = PLAYER_SPAWN_COUNTER;
+                player.spawn_counter = PLAYER_SPAWN_COUNTER; // do we want this?
                 if store.game_state == GameState::Start {
                     println!("--- Start ---");
                     store.reset();
                     store.lives = NR_LIVES;
                 } else {
                     println!("--- New Wave ---");
+                    store.wave += 1;
                 }
                 GameState::Play
             }

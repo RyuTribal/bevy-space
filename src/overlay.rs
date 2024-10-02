@@ -8,12 +8,12 @@ use bevy::{
 
 use crate::{
     common::*,
-    game_state::{GameState, Store},
+    game_state::{GameState, StateTransitionTimer, Store},
 };
 
 //
 #[derive(Component)]
-pub struct Fps;
+pub struct ShowState;
 
 #[derive(Component)]
 pub struct StatusBar;
@@ -24,9 +24,9 @@ pub struct Overlay {
 }
 
 pub fn setup(mut commands: Commands) {
-    // FPS
+    // Show State
     commands.spawn((
-        Fps,
+        ShowState,
         TextBundle::from_sections([
             TextSection::new(
                 "FPS: ",
@@ -204,7 +204,7 @@ pub fn setup(mut commands: Commands) {
 
 pub fn text_update_system(
     diagnostics: Res<DiagnosticsStore>,
-    mut query: Query<&mut Text, With<Fps>>,
+    mut query: Query<&mut Text, With<ShowState>>,
 ) {
     for mut text in &mut query {
         if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
@@ -225,8 +225,17 @@ pub fn score_update_system(store: Res<Store>, mut query: Query<&mut Text, With<S
 
 pub fn state_update_system(
     store: ResMut<Store>,
-    mut game_state_query: Query<(&mut Visibility, &Overlay)>,
+    _timer_query: Query<&StateTransitionTimer>,
+    mut show_state_query: Query<&mut Visibility, With<ShowState>>,
+    mut game_state_query: Query<(&mut Visibility, &Overlay), Without<ShowState>>,
 ) {
+    let mut show_state_visibilty = show_state_query.single_mut();
+    *show_state_visibilty = if store.show_state {
+        Visibility::Visible
+    } else {
+        Visibility::Hidden
+    };
+
     for (mut visibility, overlay) in &mut game_state_query {
         if overlay.game_state == store.game_state {
             *visibility = Visibility::Visible;

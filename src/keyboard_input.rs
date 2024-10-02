@@ -20,6 +20,10 @@ pub fn keyboard_input_system(
     }
     player.direction = new_direction;
 
+    if keyboard_input.just_pressed(KeyCode::KeyI) {
+        store.show_state ^= true; // toggle
+    }
+
     match store.game_state {
         GameState::Play => {
             for mut lazer in &mut lazer_query {
