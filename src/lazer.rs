@@ -1,6 +1,16 @@
 use crate::{common::*, player::Player};
 use bevy::prelude::*;
 
+#[derive(Component)]
+pub struct Particle {
+    direction: Vec2,
+}
+pub fn lazer_particle_system(
+    time: Res<Time>,
+    mut lazer_position: Query<(Entity, &mut Particle, &mut Transform)>,
+) {
+}
+
 #[derive(Component, PartialEq, Clone, Copy)]
 pub enum Lazer {
     Fire,
@@ -9,20 +19,13 @@ pub enum Lazer {
 }
 
 /// lazer movement
-pub fn lazer_movement(
+pub fn lazer_movement_system(
     time: Res<Time>,
     player_query: Query<&Transform, With<Player>>,
     mut lazer_position: Query<(&mut Lazer, &mut Visibility, &mut Transform), Without<Player>>,
 ) {
-    // get a player_transform singleton
-    let mut player_iterator = player_query.iter();
-    let player_transform = player_iterator.next().unwrap();
-    assert!(player_iterator.next().is_none());
-
-    // get a lazer singleton
-    let mut lazer_iterator = lazer_position.iter_mut();
-    let (mut lazer, mut visibility, mut transform) = lazer_iterator.next().unwrap();
-    assert!(lazer_iterator.next().is_none());
+    let player_transform = player_query.single();
+    let (mut lazer, mut visibility, mut transform) = lazer_position.single_mut();
 
     match *lazer {
         Lazer::Fire => {

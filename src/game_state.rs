@@ -19,7 +19,6 @@ pub enum GameState {
 
 #[derive(Resource)]
 pub struct Store {
-    pub texture_handler: Option<Handle<Image>>,
     pub instant: Instant,
     pub score: u32,
     pub score_new_life: u32,
@@ -36,7 +35,6 @@ pub struct Store {
 impl Default for Store {
     fn default() -> Self {
         Store {
-            texture_handler: None,
             instant: Instant::now(),
             score: 0,
             score_new_life: 100,
@@ -55,19 +53,15 @@ impl Default for Store {
 impl Store {
     pub fn reset(&mut self) {
         *self = Self {
-            texture_handler: self.texture_handler.clone(), // will this leak?
+            // texture_handler: self.texture_handler.clone(), // will this leak?
             ..default()
         }
     }
 }
 
-// Loads the drop sprite and stores handle in the Store resource
-pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // Loads bullet sprite
-    commands.insert_resource(Store {
-        texture_handler: Some(asset_server.load("sprites/drop.png")),
-        ..default()
-    });
+// Store resource and StateTransitionTimer
+pub fn setup(mut commands: Commands) {
+    commands.insert_resource(Store { ..default() });
     commands.spawn(StateTransitionTimer(Timer::from_seconds(
         STATE_TRANSITION_DURATION,
         TimerMode::Repeating,

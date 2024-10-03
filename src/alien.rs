@@ -56,9 +56,13 @@ pub fn alien_bullet_movement(
     }
 }
 
+#[derive(Resource)]
+pub struct BulletImage(Handle<Image>);
+
 /// alien movement and shooting
-pub fn alien_movement(
+pub fn alien_movement_system(
     time: Res<Time>,
+    bullet_image: Res<BulletImage>,
 
     mut store: ResMut<Store>,
     mut commands: Commands,
@@ -128,9 +132,7 @@ pub fn alien_movement(
         {
             store.instant = Instant::now();
             trace!("bullet spawned {:?}", store.instant);
-            let mut texture = None;
-            store.texture_handler.clone_into(&mut texture);
-            let texture = texture.unwrap();
+            let texture = bullet_image.0.clone();
 
             commands.spawn((
                 AlienBullet,
@@ -192,6 +194,8 @@ pub fn setup(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     setup_borrowed(&mut commands, &asset_server, &mut texture_atlas_layouts);
+    // Loads bullet sprite and store resource
+    commands.insert_resource(BulletImage(asset_server.load("sprites/drop.png")))
 }
 // reset the aliens
 pub fn reset(
