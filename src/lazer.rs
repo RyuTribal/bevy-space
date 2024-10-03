@@ -33,13 +33,13 @@ pub fn update_system(
             spawn_explosion(
                 &mut commands,
                 &image,
-                20,
+                50,
                 (
                     player_transform.translation.x,
                     player_transform.translation.y,
                 )
                     .into(),
-                200.0,
+                100.0,
                 0.0,
                 (10.0, 10.0).into(),
             );

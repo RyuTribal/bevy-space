@@ -52,6 +52,19 @@ pub fn update_system(
                     player.spawn_counter = PLAYER_SPAWN_COUNTER;
                 }
             }
+            spawn_explosion(
+                commands,
+                &image,
+                100,
+                (
+                    bullet_transform.translation.x,
+                    bullet_transform.translation.y,
+                )
+                    .into(),
+                1000.0,
+                0.0,
+                (10.0, 10.0).into(),
+            );
         }
         // hit bunker?
         for (bunker_atlas, bunker_entity, bunker_transform) in &mut bunker_query {
@@ -60,6 +73,19 @@ pub fn update_system(
                 if store.game_state == GameState::Play {
                     hit_bunker(commands, bunker_entity, bunker_atlas);
                 }
+                spawn_explosion(
+                    commands,
+                    &image,
+                    10,
+                    (
+                        bullet_transform.translation.x,
+                        bullet_transform.translation.y,
+                    )
+                        .into(),
+                    150.0,
+                    0.0,
+                    (10.0, 10.0).into(),
+                );
             }
         }
     }
@@ -73,6 +99,15 @@ pub fn update_system(
             if in_rect(lazer_transform, bunker_transform, BUNKER_SIZE) {
                 hit_bunker(commands, entity, atlas);
                 *lazer = Lazer::Idle;
+                spawn_explosion(
+                    commands,
+                    &image,
+                    5,
+                    (lazer_transform.translation.x, lazer_transform.translation.y).into(),
+                    50.0,
+                    0.0,
+                    (10.0, 10.0).into(),
+                );
             }
         }
 

@@ -5,8 +5,7 @@ use bevy::prelude::*;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use crate::common::Direction3;
-use crate::game_state::*;
+use crate::{common::Direction3, game_state::*, particle::*};
 
 #[derive(Component)]
 pub struct Alien {
@@ -42,13 +41,23 @@ pub fn animate_update_system(
 pub struct AlienBullet;
 
 pub fn bullet_update_system(
-    time: Res<Time>,
     mut commands: Commands,
+    time: Res<Time>,
+    image: Res<CrossImage>,
     mut bullet_query: Query<(Entity, &mut Transform), With<AlienBullet>>,
 ) {
     for (entity, mut transform) in &mut bullet_query {
         if transform.translation.y < -SCENE_HEIGHT {
             trace!("bullet despawn");
+            spawn_explosion(
+                &mut commands,
+                &image,
+                10,
+                (transform.translation.x, transform.translation.y).into(),
+                150.0,
+                0.0,
+                (10.0, 10.0).into(),
+            );
             commands.entity(entity).despawn();
         } else {
             transform.translation.y -= ALIEN_BULLET_SPEED * time.delta_seconds();
