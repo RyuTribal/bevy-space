@@ -1,5 +1,6 @@
 use crate::{common::*, game_state::*, lazer::Lazer, player::Player};
 use bevy::prelude::*;
+use std::time::Duration;
 
 /// keyboard input
 pub fn update_system(
@@ -40,6 +41,7 @@ pub fn update_system(
             if keyboard_input.just_pressed(KeyCode::Enter) {
                 store.game_state = GameState::Start;
                 let mut timer = timer.single_mut();
+                timer.set_duration(Duration::from_secs_f32(STATE_TRANSITION_DURATION_SHORT));
                 timer.reset();
             }
         }

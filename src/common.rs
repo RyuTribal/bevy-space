@@ -45,8 +45,8 @@ pub const NEW_WAVE_FONT_SIZE: f32 = 200.0;
 pub const START_FONT_SIZE: f32 = 200.0;
 pub const LEADER_BOARD_FONT_SIZE: f32 = 200.0;
 
-pub const STATE_TRANSITION_DURATION: f32 = 4.0;
-
+pub const STATE_TRANSITION_DURATION: f32 = 6.0;
+pub const STATE_TRANSITION_DURATION_SHORT: f32 = 2.0;
 // Game logic related
 pub const SCORE_ALIEN: u32 = 10;
 pub const SCORE_NEW_LIFE: u32 = 1000;

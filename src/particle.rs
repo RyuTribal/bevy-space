@@ -22,9 +22,7 @@ pub fn update_system(
 
         sprite.color.set_alpha(ratio);
 
-        // maybe a rect here
         if particle.timer.just_finished() {
-            info!("particle despawn");
             commands.entity(entity).despawn();
         } else {
             let translation = &mut transform.translation;
@@ -47,6 +45,8 @@ pub fn spawn_particle(mut commands: Commands, image: Res<BulletImage>, pos: Vec2
         },
     ));
 }
+
+// Here we can provide different particle shapes, just a cross for now
 
 #[derive(Resource)]
 pub struct BulletImage(Handle<Image>);

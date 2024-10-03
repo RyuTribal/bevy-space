@@ -183,7 +183,7 @@ pub fn setup(mut commands: Commands) {
             game_state: GameState::NewWave,
         },
         TextBundle::from_section(
-            "   New Wave", // Ugly, but works
+            "    New Wave", // Ugly, but works
             TextStyle {
                 font_size: NEW_WAVE_FONT_SIZE,
                 color: YELLOW.into(),
@@ -258,8 +258,7 @@ pub fn state_update_system(
 
     // compute alpha from sinus of ratio between elapse time and timer duration
     let timer = timer_query.single();
-    let time_elapsed = timer.elapsed().as_secs_f32();
-    let ratio = time_elapsed / STATE_TRANSITION_DURATION;
+    let ratio = timer.elapsed().as_secs_f32() / timer.duration().as_secs_f32();
     let alpha = (PI * ratio).sin();
     for (mut visibility, mut text, overlay) in &mut game_state_query {
         text.sections[0].style.color.set_alpha(alpha);

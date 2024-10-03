@@ -7,6 +7,7 @@ use crate::{
     player::Player,
 };
 use bevy::prelude::*;
+use std::time::Duration;
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_system(
@@ -41,6 +42,7 @@ pub fn update_system(
                 store.lives -= 1;
                 if store.lives == 0 {
                     store.game_state = GameState::GameOver;
+                    timer.set_duration(Duration::from_secs_f32(STATE_TRANSITION_DURATION));
                     timer.reset();
                 } else {
                     player.spawn_counter = PLAYER_SPAWN_COUNTER;
