@@ -2,7 +2,7 @@ use crate::{common::*, game_state::*, lazer::Lazer, player::Player};
 use bevy::prelude::*;
 
 /// keyboard input
-pub fn keyboard_input_system(
+pub fn update_system(
     mut store: ResMut<Store>,
     mut timer: Query<&mut StateTransitionTimer>,
     keyboard_input: Res<ButtonInput<KeyCode>>,

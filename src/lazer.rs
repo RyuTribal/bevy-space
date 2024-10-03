@@ -9,7 +9,7 @@ pub enum Lazer {
 }
 
 /// lazer movement
-pub fn lazer_movement_system(
+pub fn update_system(
     time: Res<Time>,
     player_query: Query<&Transform, With<Player>>,
     mut lazer_position: Query<(&mut Lazer, &mut Visibility, &mut Transform), Without<Player>>,

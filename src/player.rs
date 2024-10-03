@@ -8,7 +8,7 @@ pub struct Player {
 }
 
 /// player movement
-pub fn player_movement(time: Res<Time>, mut player_query: Query<(&Player, &mut Transform)>) {
+pub fn update_system(time: Res<Time>, mut player_query: Query<(&Player, &mut Transform)>) {
     for (player, mut transform) in &mut player_query {
         match player.direction {
             Direction3::Left => {
@@ -29,7 +29,7 @@ pub fn player_movement(time: Res<Time>, mut player_query: Query<(&Player, &mut T
 #[derive(Component, Deref, DerefMut)]
 pub struct BlinkTimer(Timer);
 
-pub fn blink_player_system(
+pub fn blink_update_system(
     time: Res<Time>,
     mut blink_query: Query<(&mut Visibility, &mut Player, &mut BlinkTimer)>,
 ) {

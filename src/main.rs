@@ -43,11 +43,11 @@ fn main() {
         .add_systems(
             Update,
             (
-                keyboard_input::keyboard_input_system,
-                hit_detection::hit_detection,
-                player::player_movement,
-                player::blink_player_system,
-                lazer::lazer_movement_system,
+                keyboard_input::update_system,
+                hit_detection::update_system,
+                player::update_system,
+                player::blink_update_system,
+                lazer::update_system,
                 alien::alien_movement_system,
                 alien::alien_bullet_movement,
                 alien::animate_alien_system,

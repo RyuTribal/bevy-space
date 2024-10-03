@@ -9,7 +9,7 @@ use crate::{
 use bevy::prelude::*;
 
 #[allow(clippy::too_many_arguments)]
-pub fn hit_detection(
+pub fn update_system(
     mut store: ResMut<Store>,
     mut commands: Commands,
     mut timer_query: Query<&mut StateTransitionTimer>,
