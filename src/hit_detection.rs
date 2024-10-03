@@ -4,6 +4,7 @@ use crate::{
     common::*,
     game_state::{GameState, StateTransitionTimer, Store},
     lazer::Lazer,
+    particle::*,
     player::Player,
 };
 use bevy::prelude::*;
@@ -11,8 +12,9 @@ use std::time::Duration;
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_system(
-    mut store: ResMut<Store>,
     mut commands: Commands,
+    mut store: ResMut<Store>,
+    image: Res<CrossImage>,
     mut timer_query: Query<&mut StateTransitionTimer>,
     alien_query: Query<(Entity, &Transform), With<Alien>>,
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
@@ -28,6 +30,8 @@ pub fn update_system(
         let rect = Rect::from_center_size(t_vec, size);
         rect.contains(p_vec)
     }
+
+    let commands = &mut commands;
 
     let mut timer = timer_query.single_mut();
 
@@ -54,7 +58,7 @@ pub fn update_system(
             if in_rect(bullet_transform, bunker_transform, BUNKER_SIZE) {
                 commands.entity(bullet_entity).despawn();
                 if store.game_state == GameState::Play {
-                    hit_bunker(&mut commands, bunker_entity, bunker_atlas);
+                    hit_bunker(commands, bunker_entity, bunker_atlas);
                 }
             }
         }
@@ -67,7 +71,7 @@ pub fn update_system(
         // check bunkers
         for (atlas, entity, bunker_transform) in &mut bunker_query {
             if in_rect(lazer_transform, bunker_transform, BUNKER_SIZE) {
-                hit_bunker(&mut commands, entity, atlas);
+                hit_bunker(commands, entity, atlas);
                 *lazer = Lazer::Idle;
             }
         }
@@ -81,6 +85,17 @@ pub fn update_system(
                 store.aliens_killed += 1;
                 store.alien_speed += ALIENS_SPEED_KILL;
                 store.score += SCORE_ALIEN;
+
+                spawn_explosion(
+                    commands,
+                    &image,
+                    10,
+                    (lazer_transform.translation.x, lazer_transform.translation.y).into(),
+                    500.0,
+                    0.0,
+                    (10.0, 10.0).into(),
+                );
+
                 if store.aliens_killed == ALIENS_TOTAL {
                     debug!("-- new wave --");
                     store.aliens_killed = 0;

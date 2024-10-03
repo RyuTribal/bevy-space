@@ -12,9 +12,9 @@ pub enum Lazer {
 
 /// lazer movement
 pub fn update_system(
-    commands: Commands,
+    mut commands: Commands,
     time: Res<Time>,
-    image: Res<BulletImage>,
+    image: Res<CrossImage>,
     mut player_query: Query<&mut Transform, With<Player>>,
     mut lazer_position: Query<(&mut Lazer, &mut Visibility, &mut Transform), Without<Player>>,
 ) {
@@ -31,8 +31,8 @@ pub fn update_system(
             ));
             *visibility = Visibility::Visible;
             spawn_explosion(
-                commands,
-                image,
+                &mut commands,
+                &image,
                 20,
                 (
                     player_transform.translation.x,

@@ -39,7 +39,7 @@ pub fn update_system(
 
 pub fn spawn_particle(
     mut commands: Commands,
-    image: Res<BulletImage>,
+    image: Res<CrossImage>,
     pos: Vec2,
     delta: Vec2,
     delta_random: Vec2,
@@ -59,8 +59,8 @@ pub fn spawn_particle(
 }
 
 pub fn spawn_explosion(
-    mut commands: Commands,
-    image: Res<BulletImage>,
+    commands: &mut Commands,
+    image: &Res<CrossImage>,
     nr_rays: usize,
     pos: Vec2,
     speed: f32,
@@ -86,10 +86,10 @@ pub fn spawn_explosion(
 
 // Here we can provide different particle shapes, just a cross for now
 
-#[derive(Resource)]
-pub struct BulletImage(Handle<Image>);
+#[derive(Resource, Clone)]
+pub struct CrossImage(Handle<Image>);
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Loads bullet sprite and store resource
-    commands.insert_resource(BulletImage(asset_server.load("sprites/cross.png")))
+    commands.insert_resource(CrossImage(asset_server.load("sprites/cross.png")))
 }
