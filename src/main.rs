@@ -3,7 +3,8 @@
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, window::WindowResolution};
 use bevy_space::{
-    alien, bunker, common::*, game_state, hit_detection, keyboard_input, lazer, overlay, player,
+    alien, bunker, common::*, game_state, hit_detection, keyboard_input, lazer, overlay, particle,
+    player,
 };
 
 fn setup(mut commands: Commands) {
@@ -35,6 +36,7 @@ fn main() {
                 alien::setup,
                 bunker::setup,
                 overlay::setup,
+                particle::setup,
             )
                 .chain(),
         )
@@ -53,6 +55,7 @@ fn main() {
                 overlay::score_update_system,
                 overlay::state_update_system,
                 game_state::state_transition_system,
+                particle::particle_update_system,
             ),
         )
         .run();

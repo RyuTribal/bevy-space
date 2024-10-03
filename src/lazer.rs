@@ -1,16 +1,6 @@
 use crate::{common::*, player::Player};
 use bevy::prelude::*;
 
-#[derive(Component)]
-pub struct Particle {
-    direction: Vec2,
-}
-pub fn lazer_particle_system(
-    time: Res<Time>,
-    mut lazer_position: Query<(Entity, &mut Particle, &mut Transform)>,
-) {
-}
-
 #[derive(Component, PartialEq, Clone, Copy)]
 pub enum Lazer {
     Fire,
