@@ -14,15 +14,12 @@ pub struct Particle {
 pub fn update_system(
     time: Res<Time>,
     mut commands: Commands,
-
     mut bullet_query: Query<(Entity, &mut Sprite, &mut Transform, &mut Particle)>,
 ) {
     for (entity, mut sprite, mut transform, mut particle) in &mut bullet_query {
-        //for (entity, mut transform, bullet) in &mut bullet_query {
         particle.timer.tick(time.delta());
 
         let ratio = 1.0 - particle.timer.elapsed().as_secs_f32() / PARTICLE_DURATION;
-
         sprite.color.set_alpha(ratio);
 
         if particle.timer.just_finished() {
