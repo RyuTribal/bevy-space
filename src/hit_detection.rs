@@ -61,7 +61,7 @@ pub fn update_system(
     // get lazer singleton
     let (mut lazer, lazer_transform) = lazer_query.get_single_mut().unwrap();
 
-    if *lazer == Lazer::Fired {
+    if let Lazer::Fired(_) = *lazer {
         // check bunkers
         for (atlas, entity, bunker_transform) in &mut bunker_query {
             if in_rect(lazer_transform, bunker_transform, BUNKER_SIZE) {

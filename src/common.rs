@@ -5,6 +5,7 @@ use bevy::prelude::*;
 pub const RES_Y: f32 = 1080.0; // well a bit too modern
 pub const RES_X: f32 = RES_Y * 4.0 / 3.0;
 
+// Game mechanics related
 pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SIZE: Vec2 = Vec2::new(64.0, 40.0);
 pub const PLAYER_HEIGHT: f32 = 50.0; // There should be a way to get this from sprite
@@ -12,6 +13,7 @@ pub const PLAYER_SPAWN_COUNTER: u8 = 4;
 pub const PLAYER_SPAWN_DURATION: f32 = 0.25;
 
 pub const LAZER_SPEED: f32 = 1250.0;
+pub const LAZER_PARTICLE_INTERVAL: f32 = 0.02; // Duration in seconds between particles
 
 pub const SCENE_WIDTH: f32 = RES_X / 2.0 - 100.0;
 pub const SCENE_HEIGHT: f32 = RES_Y / 2.0 - 50.0;
@@ -33,6 +35,9 @@ pub const ALIENS_SPEED_KILL: f32 = 2.0;
 pub const ALIENS_SPEED_WAVE: f32 = 10.0;
 pub const ALIENS_SPEED_MAX: f32 = 100.0;
 
+pub const PARTICLE_DURATION: f32 = 0.5; // in seconds
+
+// Game UI related
 pub const STATUS_BAR_FONT_SIZE: f32 = 50.0;
 pub const GAME_OVER_FONT_SIZE: f32 = 200.0;
 pub const INSERT_COIN_FONT_SIZE: f32 = 175.0;
@@ -42,6 +47,7 @@ pub const LEADER_BOARD_FONT_SIZE: f32 = 200.0;
 
 pub const STATE_TRANSITION_DURATION: f32 = 4.0;
 
+// Game logic related
 pub const SCORE_ALIEN: u32 = 10;
 pub const SCORE_NEW_LIFE: u32 = 1000;
 pub const SCORE_SCALE: f32 = 1.5;

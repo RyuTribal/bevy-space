@@ -1,38 +1,48 @@
 use crate::common::*;
 use bevy::prelude::*;
+use std::time::Duration;
 
 #[derive(Component)]
-pub struct Particle(Vec2);
+pub struct Particle {
+    timer: Timer,
+    delta: Vec2,
+}
 
-pub fn particle_update_system(
+pub fn update_system(
     time: Res<Time>,
     mut commands: Commands,
-    mut bullet_query: Query<(Entity, &mut Transform, &Particle)>,
+
+    mut bullet_query: Query<(Entity, &mut Sprite, &mut Transform, &mut Particle)>,
 ) {
-    for (entity, mut transform, bullet) in &mut bullet_query {
-        let translation = &mut transform.translation;
+    for (entity, mut sprite, mut transform, mut particle) in &mut bullet_query {
+        //for (entity, mut transform, bullet) in &mut bullet_query {
+        particle.timer.tick(time.delta());
+
+        let ratio = 1.0 - particle.timer.elapsed().as_secs_f32() / PARTICLE_DURATION;
+
+        sprite.color.set_alpha(ratio);
+
         // maybe a rect here
-        if translation.y < -SCENE_HEIGHT
-            || translation.x > SCENE_HEIGHT
-            || translation.x < -SCENE_WIDTH
-            || translation.x > SCENE_WIDTH
-        {
+        if particle.timer.just_finished() {
             info!("particle despawn");
             commands.entity(entity).despawn();
         } else {
-            translation.x -= bullet.0.x * time.delta_seconds();
-            translation.y -= bullet.0.y * time.delta_seconds();
+            let translation = &mut transform.translation;
+            translation.x += particle.delta.x * time.delta_seconds();
+            translation.y += particle.delta.y * time.delta_seconds();
         }
     }
 }
 
 pub fn spawn_particle(mut commands: Commands, image: Res<BulletImage>, pos: Vec2, delta: Vec2) {
     commands.spawn((
-        Particle(delta),
+        Particle {
+            delta,
+            timer: Timer::new(Duration::from_secs_f32(PARTICLE_DURATION), TimerMode::Once),
+        },
         SpriteBundle {
             texture: image.0.clone(),
             transform: Transform::from_xyz(pos.x, pos.y, 0.0),
-            visibility: Visibility::Hidden,
             ..default()
         },
     ));

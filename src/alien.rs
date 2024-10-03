@@ -22,7 +22,7 @@ pub struct AnimationIndices {
 #[derive(Component, Deref, DerefMut)]
 pub struct AnimationTimer(Timer);
 
-pub fn animate_alien_system(
+pub fn animate_update_system(
     time: Res<Time>,
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut TextureAtlas)>,
 ) {
@@ -41,7 +41,7 @@ pub fn animate_alien_system(
 #[derive(Component)]
 pub struct AlienBullet;
 
-pub fn alien_bullet_movement(
+pub fn bullet_update_system(
     time: Res<Time>,
     mut commands: Commands,
     mut bullet_query: Query<(Entity, &mut Transform), With<AlienBullet>>,
@@ -60,7 +60,7 @@ pub fn alien_bullet_movement(
 pub struct BulletImage(Handle<Image>);
 
 /// alien movement and shooting
-pub fn alien_movement_system(
+pub fn update_system(
     time: Res<Time>,
     bullet_image: Res<BulletImage>,
 

@@ -243,9 +243,6 @@ pub fn score_update_system(
     status_text.sections[3].value = format!("{:1}  ", store.wave);
     score_text.sections[1].value = format!("{:06}", store.score);
 }
-
-// Query<&mut Text, With<ColorText>>
-
 pub fn state_update_system(
     store: ResMut<Store>,
     timer_query: Query<&StateTransitionTimer>,

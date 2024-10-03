@@ -81,7 +81,7 @@ where
 pub struct StateTransitionTimer(Timer);
 
 #[allow(clippy::too_many_arguments)]
-pub fn state_transition_system(
+pub fn update_system(
     mut commands: Commands,
     time: Res<Time>,
     mut store: ResMut<Store>,
