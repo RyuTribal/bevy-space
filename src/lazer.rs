@@ -1,5 +1,6 @@
 use crate::{common::*, particle::*, player::Player};
 use bevy::prelude::*;
+use rand::random;
 use std::time::Duration;
 
 #[derive(Component, PartialEq, Clone)]
@@ -29,6 +30,19 @@ pub fn update_system(
                 TimerMode::Repeating,
             ));
             *visibility = Visibility::Visible;
+            spawn_explosion(
+                commands,
+                image,
+                20,
+                (
+                    player_transform.translation.x,
+                    player_transform.translation.y,
+                )
+                    .into(),
+                200.0,
+                0.0,
+                (10.0, 10.0).into(),
+            );
         }
         Lazer::Fired(timer) => {
             timer.tick(time.delta());
@@ -37,7 +51,8 @@ pub fn update_system(
                     commands,
                     image,
                     (transform.translation.x, transform.translation.y).into(),
-                    (0.0, -LAZER_SPEED * 0.1).into(),
+                    (30.0 * (random::<f32>() - 0.5), -LAZER_SPEED * 0.1).into(),
+                    (0.0, 0.0).into(),
                 );
             }
 

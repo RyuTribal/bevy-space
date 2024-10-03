@@ -1,11 +1,14 @@
 use crate::common::*;
 use bevy::prelude::*;
+use rand::random;
+use std::f32::consts::TAU;
 use std::time::Duration;
 
 #[derive(Component)]
 pub struct Particle {
     timer: Timer,
     delta: Vec2,
+    delta_random: Vec2,
 }
 
 pub fn update_system(
@@ -26,17 +29,26 @@ pub fn update_system(
             commands.entity(entity).despawn();
         } else {
             let translation = &mut transform.translation;
-            translation.x += particle.delta.x * time.delta_seconds();
-            translation.y += particle.delta.y * time.delta_seconds();
+            translation.x += (particle.delta.x + (random::<f32>() - 0.5) * particle.delta_random.x)
+                * time.delta_seconds();
+            translation.y += (particle.delta.y + (random::<f32>() - 0.5) * particle.delta_random.y)
+                * time.delta_seconds();
         }
     }
 }
 
-pub fn spawn_particle(mut commands: Commands, image: Res<BulletImage>, pos: Vec2, delta: Vec2) {
+pub fn spawn_particle(
+    mut commands: Commands,
+    image: Res<BulletImage>,
+    pos: Vec2,
+    delta: Vec2,
+    delta_random: Vec2,
+) {
     commands.spawn((
         Particle {
-            delta,
             timer: Timer::new(Duration::from_secs_f32(PARTICLE_DURATION), TimerMode::Once),
+            delta,
+            delta_random,
         },
         SpriteBundle {
             texture: image.0.clone(),
@@ -44,6 +56,32 @@ pub fn spawn_particle(mut commands: Commands, image: Res<BulletImage>, pos: Vec2
             ..default()
         },
     ));
+}
+
+pub fn spawn_explosion(
+    mut commands: Commands,
+    image: Res<BulletImage>,
+    nr_rays: usize,
+    pos: Vec2,
+    speed: f32,
+    _speed_random: f32,
+    delta_random: Vec2,
+) {
+    for i in 0..nr_rays {
+        let angle = TAU * (i as f32) / nr_rays as f32;
+        commands.spawn((
+            Particle {
+                timer: Timer::new(Duration::from_secs_f32(PARTICLE_DURATION), TimerMode::Once),
+                delta: (speed * angle.sin(), speed * angle.cos()).into(),
+                delta_random,
+            },
+            SpriteBundle {
+                texture: image.0.clone(),
+                transform: Transform::from_xyz(pos.x, pos.y, 0.0),
+                ..default()
+            },
+        ));
+    }
 }
 
 // Here we can provide different particle shapes, just a cross for now

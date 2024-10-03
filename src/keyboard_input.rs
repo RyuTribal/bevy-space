@@ -27,13 +27,12 @@ pub fn update_system(
 
     match store.game_state {
         GameState::Play => {
-            for mut lazer in &mut lazer_query {
-                if *lazer == Lazer::Idle
-                    && (keyboard_input.just_pressed(KeyCode::Space)
-                        || keyboard_input.pressed(KeyCode::ArrowUp))
-                {
-                    *lazer = Lazer::Fire;
-                }
+            let mut lazer = lazer_query.single_mut();
+            if *lazer == Lazer::Idle
+                && (keyboard_input.just_pressed(KeyCode::Space)
+                    || keyboard_input.pressed(KeyCode::ArrowUp))
+            {
+                *lazer = Lazer::Fire;
             }
         }
 
