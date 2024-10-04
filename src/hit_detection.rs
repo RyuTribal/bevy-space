@@ -3,25 +3,25 @@ use crate::{
     audio::*,
     bunker::*,
     common::*,
-    game_state::{GameState, StateTransitionTimer, Store},
+    // game_state::{GameState, StateTransitionTimer, Store},
+    game_state::{GameState, GameStateEvent, Store},
     lazer::Lazer,
     particle::*,
     player::Player,
 };
 use bevy::prelude::*;
-use std::time::Duration;
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_system(
     mut commands: Commands,
     mut store: ResMut<Store>,
     image: Res<CrossImage>,
-    mut timer_query: Query<&mut StateTransitionTimer>,
+    mut game_state_event_writer: EventWriter<GameStateEvent>,
     alien_query: Query<(Entity, &Transform), With<Alien>>,
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
     mut bunker_query: Query<(&mut TextureAtlas, Entity, &Transform), With<Bunker>>,
     alien_bullet_query: Query<(Entity, &Transform), With<AlienBullet>>,
-    mut player_query: Query<(&mut Player, &Transform), With<Player>>,
+    mut player_query: Query<&Transform, With<Player>>,
     mut collision_events: EventWriter<CollisionEvent>,
 ) {
     // check if point:&Transform is in &target:Transform with size:Vec2
@@ -35,25 +35,15 @@ pub fn update_system(
 
     let commands = &mut commands;
 
-    let mut timer = timer_query.single_mut();
-
     // get a player singleton
-    let (mut player, player_transform) = player_query.single_mut();
+    let player_transform = player_query.single_mut();
     // alien bullets
     for (bullet_entity, bullet_transform) in &alien_bullet_query {
         // hit player
         if in_rect(bullet_transform, player_transform, PLAYER_SIZE) {
             commands.entity(bullet_entity).despawn();
-            if player.spawn_counter == 0 && store.lives > 0 {
-                store.lives -= 1;
-                if store.lives == 0 {
-                    store.game_state = GameState::GameOver;
-                    timer.set_duration(Duration::from_secs_f32(STATE_TRANSITION_DURATION));
-                    timer.reset();
-                } else {
-                    player.spawn_counter = PLAYER_SPAWN_COUNTER;
-                }
-            }
+            game_state_event_writer.send(GameStateEvent::LooseLife);
+
             spawn_explosion(
                 commands,
                 &image,
@@ -138,7 +128,8 @@ pub fn update_system(
                     debug!("-- new wave --");
                     store.aliens_killed = 0;
                     store.game_state = GameState::NewWave;
-                    timer.reset();
+                    // timer.reset();
+                    game_state_event_writer.send(GameStateEvent::NewWave);
                 }
             }
         }

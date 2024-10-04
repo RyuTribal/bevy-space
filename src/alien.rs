@@ -1,4 +1,3 @@
-// use crate::cleanup::cleanup_state;
 use crate::common::*;
 use bevy::prelude::*;
 
@@ -66,14 +65,17 @@ pub fn bullet_update_system(
 }
 
 #[derive(Resource)]
-pub struct BulletImage(Handle<Image>);
+pub struct AlienResource {
+    image_handle: Handle<Image>,
+    bullet_spawn_timer: Instant,
+}
 
 /// alien movement and shooting
 pub fn update_system(
     time: Res<Time>,
-    bullet_image: Res<BulletImage>,
+    mut alien_resource: ResMut<AlienResource>,
 
-    mut store: ResMut<Store>,
+    store: Res<Store>,
     mut commands: Commands,
 
     mut aliens: Query<(&mut Alien, &mut Transform)>,
@@ -136,12 +138,13 @@ pub fn update_system(
 
     for (_, transform) in &mut aliens {
         // drop bullet?
-        if store.instant.elapsed() > Duration::from_secs_f32(store.bullet_interval)
+        if alien_resource.bullet_spawn_timer.elapsed()
+            > Duration::from_secs_f32(store.bullet_interval)
             && rand::random::<f32>() < 1.0f32 / (hm.len() as f32)
         {
-            store.instant = Instant::now();
-            trace!("bullet spawned {:?}", store.instant);
-            let texture = bullet_image.0.clone();
+            alien_resource.bullet_spawn_timer = Instant::now();
+            trace!("bullet spawned {:?}", alien_resource.bullet_spawn_timer);
+            let texture = alien_resource.image_handle.clone();
 
             commands.spawn((
                 AlienBullet,
@@ -204,7 +207,10 @@ pub fn setup(
 ) {
     setup_borrowed(&mut commands, &asset_server, &mut texture_atlas_layouts);
     // Loads bullet sprite and store resource
-    commands.insert_resource(BulletImage(asset_server.load("sprites/drop.png")))
+    commands.insert_resource(AlienResource {
+        image_handle: asset_server.load("sprites/drop.png"),
+        bullet_spawn_timer: Instant::now(),
+    })
 }
 // reset the aliens
 pub fn reset(

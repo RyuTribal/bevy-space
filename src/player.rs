@@ -1,10 +1,9 @@
-use crate::common::*;
+use crate::{common::*, game_state::*};
 use bevy::prelude::*;
 
 #[derive(Component, Default)]
 pub struct Player {
     pub direction: Direction3,
-    pub spawn_counter: u8,
 }
 
 /// player movement
@@ -26,34 +25,27 @@ pub fn update_system(time: Res<Time>, mut player_query: Query<(&Player, &mut Tra
     }
 }
 
-#[derive(Component, Deref, DerefMut)]
-pub struct BlinkTimer(Timer);
-
 pub fn blink_update_system(
-    time: Res<Time>,
-    mut blink_query: Query<(&mut Visibility, &mut Player, &mut BlinkTimer)>,
+    store: Res<Store>,
+    mut player_query: Query<&mut Visibility, With<Player>>,
 ) {
-    let (mut visibility, mut player, mut timer) = blink_query.single_mut();
+    let mut visibility = player_query.single_mut();
 
-    timer.tick(time.delta());
-    if player.spawn_counter > 0 && timer.just_finished() {
-        // toggle visibility
-        if *visibility == Visibility::Visible {
-            *visibility = Visibility::Hidden;
-        } else {
-            player.spawn_counter -= 1;
-            *visibility = Visibility::Visible
+    match store.game_state {
+        GameState::PlayerSpawn(spawn_count) => {
+            if spawn_count % 2u8 == 0 {
+                *visibility = Visibility::Visible;
+            } else {
+                *visibility = Visibility::Hidden;
+            }
         }
+        _ => *visibility = Visibility::Visible,
     }
 }
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Player::default(),
-        BlinkTimer(Timer::from_seconds(
-            PLAYER_SPAWN_DURATION,
-            TimerMode::Repeating,
-        )),
         SpriteBundle {
             texture: asset_server.load("sprites/space.png"),
             transform: Transform::from_xyz(0., -SCENE_HEIGHT, 0.),

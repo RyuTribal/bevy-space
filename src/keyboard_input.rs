@@ -30,13 +30,14 @@ pub fn update_system(
             if keyboard_input.just_pressed(KeyCode::Space)
                 || keyboard_input.pressed(KeyCode::ArrowUp)
             {
+                println!("-- fire lazer event sent --");
                 fire_lazer_event_writer.send(FireLazerEvent);
             }
         }
 
         _ => {
             if keyboard_input.just_pressed(KeyCode::Enter) {
-                game_state_event_writer.send(GameStateEvent(GameState::Start));
+                game_state_event_writer.send(GameStateEvent::PressPlay);
             }
         }
     }

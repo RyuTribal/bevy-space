@@ -9,7 +9,7 @@ use bevy::{
 
 use crate::{
     common::*,
-    game_state::{GameState, StateTransitionTimer, Store},
+    game_state::{GameState, Store, TimerResource},
 };
 
 //
@@ -245,7 +245,8 @@ pub fn score_update_system(
 }
 pub fn state_update_system(
     store: ResMut<Store>,
-    timer_query: Query<&StateTransitionTimer>,
+    game_state_timer: Res<TimerResource>,
+
     mut show_state_query: Query<&mut Visibility, With<ShowState>>,
     mut game_state_query: Query<(&mut Visibility, &mut Text, &Overlay), Without<ShowState>>,
 ) {
@@ -257,8 +258,9 @@ pub fn state_update_system(
     };
 
     // compute alpha from sinus of ratio between elapse time and timer duration
-    let timer = timer_query.single();
-    let ratio = timer.elapsed().as_secs_f32() / timer.duration().as_secs_f32();
+
+    let ratio =
+        game_state_timer.elapsed().as_secs_f32() / game_state_timer.duration().as_secs_f32();
     let alpha = (PI * ratio).sin();
     for (mut visibility, mut text, overlay) in &mut game_state_query {
         text.sections[0].style.color.set_alpha(alpha);
