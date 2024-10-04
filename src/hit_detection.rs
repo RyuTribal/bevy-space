@@ -117,7 +117,6 @@ pub fn update_system(
         for (alien_entity, enemy_transform) in &alien_query {
             // Collision check
             if in_rect(lazer_transform, enemy_transform, ALIEN_SIZE) {
-                println!("-- send collision event -- ");
                 collision_events.send_default();
                 commands.entity(alien_entity).despawn();
                 *lazer = Lazer::Idle;

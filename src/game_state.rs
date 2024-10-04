@@ -17,6 +17,9 @@ pub enum GameState {
     NewWave,
 }
 
+#[derive(Event)]
+pub struct StateChangeEvent(GameState);
+
 #[derive(Resource)]
 pub struct Store {
     pub instant: Instant,
@@ -77,11 +80,15 @@ where
     }
 }
 
+#[derive(Event)]
+pub struct GameStateEvent(GameState);
+
 #[derive(Component, Deref, DerefMut)]
 pub struct StateTransitionTimer(Timer);
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_system(
+    // game_state_event: EventReader<GameStateEvent>,
     mut commands: Commands,
     time: Res<Time>,
     mut store: ResMut<Store>,
