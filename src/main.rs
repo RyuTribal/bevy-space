@@ -30,7 +30,9 @@ fn main() {
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .insert_resource(ClearColor(Color::BLACK))
         .add_event::<CollisionEvent>()
-        .add_event::<PlayMusicEvent>()
+        .add_event::<audio::PlayMusicEvent>()
+        .add_event::<lazer::FireLazerEvent>()
+        .add_event::<game_state::GameStateEvent>()
         .add_systems(
             Startup,
             (
@@ -65,7 +67,12 @@ fn main() {
                     particle::update_system,
                 )
                     .before(audio::play_collision_system),
-                (audio::play_collision_system, audio::play_music_system).chain(),
+                (
+                    audio::play_collision_system,
+                    audio::play_music_system,
+                    lazer::fire_lazer_system,
+                    game_state::game_state_event_system,
+                ),
             ),
         )
         .run();

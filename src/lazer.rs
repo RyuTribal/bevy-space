@@ -10,6 +10,24 @@ pub enum Lazer {
     Idle,
 }
 
+#[derive(Event)]
+pub struct FireLazerEvent;
+
+pub fn fire_lazer_system(
+    mut fire_lazer_event: EventReader<FireLazerEvent>,
+    mut lazer_query: Query<&mut Lazer>,
+) {
+    if !fire_lazer_event.is_empty() {
+        fire_lazer_event.clear();
+        let mut lazer = lazer_query.single_mut();
+        match *lazer {
+            // updates Lazer state only if Lazer idle
+            Lazer::Idle => *lazer = Lazer::Fire,
+            _ => {}
+        }
+    }
+}
+
 /// lazer movement
 pub fn update_system(
     mut commands: Commands,

@@ -1,15 +1,14 @@
-use crate::{audio::PlayMusicEvent, common::*, game_state::*, lazer::Lazer, player::Player};
+use crate::{common::*, game_state::*, lazer::FireLazerEvent, player::Player};
 use bevy::prelude::*;
-use std::time::Duration;
 
 /// keyboard input
 pub fn update_system(
-    mut play_music_event_writer: EventWriter<PlayMusicEvent>,
+    mut fire_lazer_event_writer: EventWriter<FireLazerEvent>,
+    mut game_state_event_writer: EventWriter<GameStateEvent>,
     mut store: ResMut<Store>,
-    mut timer: Query<&mut StateTransitionTimer>,
+
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<&mut Player>,
-    mut lazer_query: Query<&mut Lazer>,
 ) {
     let mut player = player_query.single_mut();
 
@@ -28,22 +27,16 @@ pub fn update_system(
 
     match store.game_state {
         GameState::Play => {
-            let mut lazer = lazer_query.single_mut();
-            if *lazer == Lazer::Idle
-                && (keyboard_input.just_pressed(KeyCode::Space)
-                    || keyboard_input.pressed(KeyCode::ArrowUp))
+            if keyboard_input.just_pressed(KeyCode::Space)
+                || keyboard_input.pressed(KeyCode::ArrowUp)
             {
-                *lazer = Lazer::Fire;
+                fire_lazer_event_writer.send(FireLazerEvent);
             }
         }
 
         _ => {
             if keyboard_input.just_pressed(KeyCode::Enter) {
-                store.game_state = GameState::Start;
-                play_music_event_writer.send(PlayMusicEvent(false));
-                let mut timer = timer.single_mut();
-                timer.set_duration(Duration::from_secs_f32(STATE_TRANSITION_DURATION_SHORT));
-                timer.reset();
+                game_state_event_writer.send(GameStateEvent(GameState::Start));
             }
         }
     }

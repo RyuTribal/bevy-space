@@ -1,11 +1,15 @@
-use crate::common::*;
 use crate::{
     alien,
+    audio::PlayMusicEvent,
     bunker::{self, Bunker},
+    common::*,
     player::Player,
 };
 use bevy::prelude::*;
-use std::{default::Default, time::Instant};
+use std::{
+    default::Default,
+    time::{Duration, Instant},
+};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum GameState {
@@ -16,9 +20,6 @@ pub enum GameState {
     Play,
     NewWave,
 }
-
-#[derive(Event)]
-pub struct StateChangeEvent(GameState);
 
 #[derive(Resource)]
 pub struct Store {
@@ -81,7 +82,28 @@ where
 }
 
 #[derive(Event)]
-pub struct GameStateEvent(GameState);
+pub struct GameStateEvent(pub GameState);
+
+pub fn game_state_event_system(
+    mut game_state_event: EventReader<GameStateEvent>,
+    mut play_music_event_writer: EventWriter<PlayMusicEvent>,
+    mut store: ResMut<Store>,
+    mut timer_query: Query<&mut StateTransitionTimer>,
+) {
+    for event in game_state_event.read() {
+        let GameStateEvent(state) = event;
+        match state {
+            GameState::Start => {
+                store.game_state = GameState::Start;
+                play_music_event_writer.send(PlayMusicEvent(false));
+                let mut timer = timer_query.single_mut();
+                timer.set_duration(Duration::from_secs_f32(STATE_TRANSITION_DURATION_SHORT));
+                timer.reset();
+            }
+            _ => {}
+        }
+    }
+}
 
 #[derive(Component, Deref, DerefMut)]
 pub struct StateTransitionTimer(Timer);
@@ -92,7 +114,7 @@ pub fn update_system(
     mut commands: Commands,
     time: Res<Time>,
     mut store: ResMut<Store>,
-    mut query: Query<&mut StateTransitionTimer>,
+    mut timer_query: Query<&mut StateTransitionTimer>,
     asset_server: Res<AssetServer>,
     mut texture_atlas_layout: ResMut<Assets<TextureAtlasLayout>>,
     alien_query: Query<Entity, With<alien::Alien>>,
@@ -100,7 +122,7 @@ pub fn update_system(
     bunker_query: Query<Entity, With<Bunker>>,
     mut player_query: Query<&mut Player>,
 ) {
-    let mut timer = query.single_mut();
+    let mut timer = timer_query.single_mut();
     timer.tick(time.delta());
 
     // extra life(s)
