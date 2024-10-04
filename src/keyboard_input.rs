@@ -1,9 +1,10 @@
-use crate::{common::*, game_state::*, lazer::Lazer, player::Player};
+use crate::{audio::PlayMusicEvent, common::*, game_state::*, lazer::Lazer, player::Player};
 use bevy::prelude::*;
 use std::time::Duration;
 
 /// keyboard input
 pub fn update_system(
+    mut play_music_event_writer: EventWriter<PlayMusicEvent>,
     mut store: ResMut<Store>,
     mut timer: Query<&mut StateTransitionTimer>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
@@ -39,6 +40,7 @@ pub fn update_system(
         _ => {
             if keyboard_input.just_pressed(KeyCode::Enter) {
                 store.game_state = GameState::Start;
+                play_music_event_writer.send(PlayMusicEvent(false));
                 let mut timer = timer.single_mut();
                 timer.set_duration(Duration::from_secs_f32(STATE_TRANSITION_DURATION_SHORT));
                 timer.reset();

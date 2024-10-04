@@ -1,5 +1,6 @@
 use crate::{
     alien::*,
+    audio::*,
     bunker::*,
     common::*,
     game_state::{GameState, StateTransitionTimer, Store},
@@ -21,6 +22,7 @@ pub fn update_system(
     mut bunker_query: Query<(&mut TextureAtlas, Entity, &Transform), With<Bunker>>,
     alien_bullet_query: Query<(Entity, &Transform), With<AlienBullet>>,
     mut player_query: Query<(&mut Player, &Transform), With<Player>>,
+    mut collision_events: EventWriter<CollisionEvent>,
 ) {
     // check if point:&Transform is in &target:Transform with size:Vec2
     #[inline(always)]
@@ -115,6 +117,8 @@ pub fn update_system(
         for (alien_entity, enemy_transform) in &alien_query {
             // Collision check
             if in_rect(lazer_transform, enemy_transform, ALIEN_SIZE) {
+                println!("-- send collision event -- ");
+                collision_events.send_default();
                 commands.entity(alien_entity).despawn();
                 *lazer = Lazer::Idle;
                 store.aliens_killed += 1;
