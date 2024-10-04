@@ -1,6 +1,7 @@
 pub mod alien;
 pub mod bunker;
 // pub mod cleanup;
+pub mod audio;
 pub mod common;
 pub mod game_state;
 pub mod hit_detection;
