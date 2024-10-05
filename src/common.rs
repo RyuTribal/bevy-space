@@ -50,7 +50,7 @@ pub const LEADER_BOARD_FONT_SIZE: f32 = 200.0;
 
 pub const STATE_TRANSITION_MENU: f32 = 6.0;
 pub const STATE_TRANSITION_START: f32 = 2.0;
-pub const STATE_TRANSITION_SPAWN: f32 = 0.5;
+pub const STATE_TRANSITION_SPAWN: f32 = 0.75;
 
 // Game logic related
 pub const SCORE_ALIEN: u32 = 10;

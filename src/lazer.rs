@@ -18,7 +18,7 @@ pub fn fire_lazer_system(
     mut lazer_query: Query<&mut Lazer>,
 ) {
     if !fire_lazer_event.is_empty() {
-        println!("-- fire lazer event received --");
+        debug!("-- fire lazer event received --");
         fire_lazer_event.clear();
         let mut lazer = lazer_query.single_mut();
         match *lazer {

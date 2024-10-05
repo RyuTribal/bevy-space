@@ -33,13 +33,14 @@ pub fn update_system(
                 game_state_ew.send(GameStateEvent::PressPlay);
             }
         }
-        _ => {
+        GameState::PlayerSpawn(_) | GameState::Play => {
             if keyboard_input.just_pressed(KeyCode::Space)
                 || keyboard_input.pressed(KeyCode::ArrowUp)
             {
-                println!("-- fire lazer event sent --");
+                debug!("-- fire lazer event sent --");
                 fire_lazer_ew.send(FireLazerEvent);
             }
         }
+        _ => {}
     }
 }

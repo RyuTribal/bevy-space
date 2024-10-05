@@ -19,9 +19,10 @@ pub fn update_system(
                 GameState::InsertCoin | GameState::LeaderBoard => {
                     game_state_event_writer.send(GameStateEvent::PressPlay);
                 }
-                _ => {
+                GameState::PlayerSpawn(_) | GameState::Play => {
                     fire_lazer_event_writer.send(FireLazerEvent);
                 }
+                _ => {}
             }
         }
 

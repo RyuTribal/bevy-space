@@ -11,7 +11,7 @@ So far:
 Todo:
 
 - Mystery ship, possibly shooting homing missiles
-- Joy stick control
+- Joy stick control, plug and play at run-time. Tested only under arch linux (Manjaro) running KDE/wayland. No extra drivers or any other specifics, should work out the box, if not rise an issue.
 - Particle system for bullet traces and explosions on impact
 - Stretch goals
   - Screen projection shader to replicate CRT
@@ -97,7 +97,9 @@ The `Events` are listed by `Component` below.
 | `player`          | `PlayerEvent`        | X                    | -                     |
 | 
 
+## Known Bugs
 
+Bevy occasionally report an attempt to despawn a non existing Entity, it occurs rarely so not obvious to pin down. It is not a fatal bug as Bevy/Rust holds our back, but it would be nice to "iron out".
 
 ---
 
