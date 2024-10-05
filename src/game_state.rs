@@ -99,7 +99,7 @@ pub fn game_state_event_system(
     mut timer: ResMut<TimerResource>,
 ) {
     for event in game_state_er.read() {
-        println!("game state event received : {:?}", event);
+        debug!("game state event received : {:?}", event);
         match event {
             GameStateEvent::PressPlay => {
                 store.game_state = GameState::Start;
@@ -185,7 +185,7 @@ pub fn update_system(
                 if *p == 0 {
                     GameState::Play
                 } else {
-                    GameState::PlayerSpawn(p.clone())
+                    GameState::PlayerSpawn(*p)
                 }
             }
             GameState::Play => {

@@ -21,10 +21,8 @@ pub fn fire_lazer_system(
         debug!("-- fire lazer event received --");
         fire_lazer_event.clear();
         let mut lazer = lazer_query.single_mut();
-        match *lazer {
-            // updates Lazer state only if Lazer idle
-            Lazer::Idle => *lazer = Lazer::Fire,
-            _ => {}
+        if *lazer == Lazer::Idle {
+            *lazer = Lazer::Fire
         }
     }
 }

@@ -55,7 +55,7 @@ pub fn play_music_system(
     mut music_controller_query: Query<&mut AudioSink, With<Music>>,
 ) {
     for event in play_music_events.read() {
-        println!("play_music_event {:?}", event);
+        debug!("play_music_event {:?}", event);
         let sink = music_controller_query.single_mut();
         if event.0 {
             sink.play();

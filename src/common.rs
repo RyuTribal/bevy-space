@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-// use std::default::Default;
 
 // vintage television format
 pub const RES_Y: f32 = 1080.0; // well a bit too modern
@@ -12,8 +11,8 @@ pub const PLAYER_SPEED: f32 = 500.0;
 pub const PLAYER_SLOW: f32 = 1.0 / 5.0; // The ratio for slow movement
 pub const PLAYER_SIZE: Vec2 = Vec2::new(64.0, 40.0);
 pub const PLAYER_HEIGHT: f32 = 50.0; // There should be a way to get this from sprite
-pub const PLAYER_SPAWN_COUNTER: u8 = 4;
-pub const PLAYER_SPAWN_DURATION: f32 = 0.25;
+pub const PLAYER_SPAWN_COUNTER: u8 = 20;
+pub const PLAYER_SPAWN_DURATION: f32 = 0.1;
 
 pub const LAZER_SPEED: f32 = 1250.0;
 pub const LAZER_PARTICLE_INTERVAL: f32 = 0.02; // Duration in seconds between particles
@@ -50,7 +49,7 @@ pub const LEADER_BOARD_FONT_SIZE: f32 = 200.0;
 
 pub const STATE_TRANSITION_MENU: f32 = 6.0;
 pub const STATE_TRANSITION_START: f32 = 2.0;
-pub const STATE_TRANSITION_SPAWN: f32 = 0.75;
+pub const STATE_TRANSITION_SPAWN: f32 = 0.25;
 
 // Game logic related
 pub const SCORE_ALIEN: u32 = 10;
