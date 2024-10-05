@@ -148,9 +148,9 @@ pub fn update_system(
 
     if timer.just_finished() {
         store.game_state = match store.game_state {
-            GameState::GameOver => GameState::LeaderBoard,
+            GameState::GameOver => GameState::InsertCoin,
+            GameState::InsertCoin => GameState::LeaderBoard,
             GameState::LeaderBoard => GameState::InsertCoin,
-            GameState::InsertCoin => GameState::GameOver,
             GameState::Start | GameState::NewWave => {
                 alien::reset(
                     &mut commands,

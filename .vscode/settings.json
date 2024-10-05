@@ -1,3 +1,10 @@
 {
-  "cSpell.ignoreWords": ["Lazer", "Pixelorama", "despawn", "srgb"]
+  "cSpell.ignoreWords": [
+    "Lazer",
+    "Pixelorama",
+    "despawn",
+    "gamepad",
+    "gamepads",
+    "srgb"
+  ]
 }

@@ -41,10 +41,18 @@ All in all, after initial build, compile times are within seconds.
 
 ## How to play
 
-- `[Enter]` to insert coin (start game)
-- `[A]`/`[Left arrow]`, `[D]`/`[Right arrow]` to move
-- `[Space]`/`[Up arrow]` to shoot
+- Keyboard
+  - `[Enter]` to insert coin (start game)
+  - `[A]`/`[Left arrow]`, `[D]`/`[Right arrow]` to move
+  - `[LeftShift]`, to slow down movement
+  - `[Space]`/`[Up arrow]` to shoot
 
+- Gamepad
+  -  `X` on PS controller, `A` on X-Box to insert coin (start game)
+  - `LeftStick` to move, speed determined by analog stick reading. 
+  - `X` on PS controller, `A` on X-Box to insert coin (start game)
+
+Hysteresis set at 0.01 to avoid drift, see `common.rs` for tuning.
 
 ---
 
@@ -68,20 +76,26 @@ The `Events` are listed by `Component` below.
 
 | Module            | Declared             | Reader               | Writer                |
 | ----------------- | -------------------- | -------------------- | --------------------- |
-| `alien`           | -                    | -                    |                       |
-| `audio`           | `PlaySoundEvent`     | `PlaySoundEvent`     |                       |
-|                   | `PlayMusicEvent`     | `PlayMusicEvent`     |                       |
-| `bunker`          | -                    | -                    |                       |
-| `common`          | -                    |                      |                       |
-| `game_state`      | `GameStateEvent`     | `GameStateEvent`     | `PlayMusicEvent`      |
-| `hit_detection`   | -                    |                      | `PlaySoundEvent`      |
-|                   |                      |                      | `GameStateEvent`      |
-| `keyboard_input`  | -                    |                      | `GameStateEvent`      |
-| `lazer`           | -                    |                      |                       |
-| `lib`             | -                    |                      |                       |
-| `main`            | -                    |                      |                       |
-| `overlay`         | -                    |                      |                       |
-| `player`          | -                    |                      |                       |
+| `alien`           | -                    | -                    | -                     |
+| `audio`           | `PlaySoundEvent`     | X                    | -                     |
+|                   | `PlayMusicEvent`     | X                    | -                     |
+| `bunker`          | -                    | -                    | -                     |
+| `common`          | -                    | -                    | -                     |
+| `game_state`      | `GameStateEvent`     | X                    | `PlayMusicEvent`      |
+| `hit_detection`   | -                    | -                    | `PlaySoundEvent`      |
+|                   | -                    | -                    | `GameStateEvent`      |
+| `keyboard_input`  | -                    | -                    | `FireLazerEvent`      |
+|                   | -                    | -                    | `PlayerEvent`         |
+|                   | -                    | -                    | `GameStateEvent`      |
+| `gamepad`         | -                    | -                    | `FireLazerEvent`      |
+|                   | -                    | -                    | `PlayerEvent`         |
+|                   | -                    | -                    | `GameStateEvent`      |
+| `lazer`           | `FireLazerEvent`     | X                    | -                     |
+| `lib`             | -                    | -                    | -                     |
+| `main`            | -                    | -                    | -                     |
+| `overlay`         | -                    | -                    | -                     |
+| `player`          | `PlayerEvent`        | X                    | -                     |
+| 
 
 
 

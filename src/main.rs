@@ -3,11 +3,8 @@
 
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, window::WindowResolution};
 use bevy_space::{
-    alien,
-    audio::{self, *},
-    bunker,
-    common::*,
-    game_state, hit_detection, keyboard_input, lazer, overlay, particle, player,
+    alien, audio, bunker, common::*, game_state, gamepad, hit_detection, keyboard_input, lazer,
+    overlay, particle, player,
 };
 
 fn setup(mut commands: Commands) {
@@ -29,10 +26,11 @@ fn main() {
         }))
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .insert_resource(ClearColor(Color::BLACK))
-        .add_event::<PlaySoundEvent>()
+        .add_event::<audio::PlaySoundEvent>()
         .add_event::<audio::PlayMusicEvent>()
         .add_event::<lazer::FireLazerEvent>()
         .add_event::<game_state::GameStateEvent>()
+        .add_event::<player::PlayerEvent>()
         .add_systems(
             Startup,
             (
@@ -65,6 +63,7 @@ fn main() {
                     overlay::state_update_system,
                     game_state::update_system,
                     particle::update_system,
+                    gamepad::update_system,
                 )
                     .before(audio::audio_hit_system),
                 (

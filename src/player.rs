@@ -1,26 +1,25 @@
 use crate::{common::*, game_state::*};
 use bevy::prelude::*;
 
-#[derive(Component, Default)]
-pub struct Player {
-    pub direction: Direction3,
-}
+#[derive(Event)]
+pub struct PlayerEvent(pub f32);
+
+#[derive(Component)]
+pub struct Player;
 
 /// player movement
-pub fn update_system(time: Res<Time>, mut player_query: Query<(&Player, &mut Transform)>) {
-    for (player, mut transform) in &mut player_query {
-        match player.direction {
-            Direction3::Left => {
-                if transform.translation.x > -SCENE_WIDTH {
-                    transform.translation.x -= PLAYER_SPEED * time.delta_seconds()
-                }
-            }
-            Direction3::Right => {
-                if transform.translation.x < SCENE_WIDTH {
-                    transform.translation.x += PLAYER_SPEED * time.delta_seconds()
-                }
-            }
-            _ => {}
+pub fn update_system(
+    time: Res<Time>,
+    mut player_er: EventReader<PlayerEvent>,
+    mut player_query: Query<&mut Transform, With<Player>>,
+) {
+    let mut transform = player_query.single_mut();
+
+    for event in player_er.read() {
+        if event.0 < 0.0 && transform.translation.x > -SCENE_WIDTH {
+            transform.translation.x += event.0 * PLAYER_SPEED * time.delta_seconds()
+        } else if event.0 > 0.0 && transform.translation.x < SCENE_WIDTH {
+            transform.translation.x += event.0 * PLAYER_SPEED * time.delta_seconds()
         }
     }
 }
@@ -48,7 +47,7 @@ pub fn blink_update_system(
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
-        Player::default(),
+        Player,
         SpriteBundle {
             texture: asset_server.load("sprites/space.png"),
             transform: Transform::from_xyz(0., -SCENE_HEIGHT, 0.),

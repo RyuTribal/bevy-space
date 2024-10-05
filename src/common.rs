@@ -5,8 +5,11 @@ use bevy::prelude::*;
 pub const RES_Y: f32 = 1080.0; // well a bit too modern
 pub const RES_X: f32 = RES_Y * 4.0 / 3.0;
 
+pub const LEFT_STICK_HYSTERESIS: f32 = 0.01; // tune threshold to avoid drift
+
 // Game mechanics related
 pub const PLAYER_SPEED: f32 = 500.0;
+pub const PLAYER_SLOW: f32 = 1.0 / 5.0; // The ratio for slow movement
 pub const PLAYER_SIZE: Vec2 = Vec2::new(64.0, 40.0);
 pub const PLAYER_HEIGHT: f32 = 50.0; // There should be a way to get this from sprite
 pub const PLAYER_SPAWN_COUNTER: u8 = 4;
