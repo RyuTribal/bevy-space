@@ -16,9 +16,9 @@ pub fn update_system(
     let mut transform = player_query.single_mut();
 
     for event in player_er.read() {
-        if event.0 < 0.0 && transform.translation.x > -SCENE_WIDTH {
-            transform.translation.x += event.0 * PLAYER_SPEED * time.delta_seconds()
-        } else if event.0 > 0.0 && transform.translation.x < SCENE_WIDTH {
+        if event.0 < 0.0 && transform.translation.x > -SCENE_WIDTH
+            || event.0 > 0.0 && transform.translation.x < SCENE_WIDTH
+        {
             transform.translation.x += event.0 * PLAYER_SPEED * time.delta_seconds()
         }
     }
@@ -33,15 +33,15 @@ pub fn blink_update_system(
 ) {
     let mut visibility = player_query.single_mut();
 
-    match store.game_state {
+    *visibility = match store.game_state {
         GameState::PlayerSpawn(spawn_count) => {
             if spawn_count % 2u8 == 0 {
-                *visibility = Visibility::Visible;
+                Visibility::Visible
             } else {
-                *visibility = Visibility::Hidden;
+                Visibility::Hidden
             }
         }
-        _ => *visibility = Visibility::Visible,
+        _ => Visibility::Visible,
     }
 }
 
