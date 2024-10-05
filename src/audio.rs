@@ -3,13 +3,13 @@
 use bevy::prelude::*;
 
 #[derive(Event, Default)]
-pub struct CollisionEvent;
+pub struct PlaySoundEvent;
 
 #[derive(Event, Debug)]
 pub struct PlayMusicEvent(pub bool);
 
 #[derive(Resource, Deref)]
-pub struct CollisionSound(Handle<AudioSource>);
+pub struct AudioResoure(Handle<AudioSource>);
 
 #[derive(Component)]
 pub struct Music;
@@ -17,7 +17,7 @@ pub struct Music;
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Sound
     let collision_audio_source = asset_server.load("sounds/breakout_collision.ogg");
-    commands.insert_resource(CollisionSound(collision_audio_source));
+    commands.insert_resource(AudioResoure(collision_audio_source));
 
     commands.spawn((
         Music,
@@ -28,13 +28,13 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-pub fn play_collision_system(
+pub fn audio_hit_system(
     mut commands: Commands,
-    mut collision_events: EventReader<CollisionEvent>,
-    sound: Res<CollisionSound>,
+    mut play_sound_er: EventReader<PlaySoundEvent>,
+    sound: Res<AudioResoure>,
 ) {
-    if !collision_events.is_empty() {
-        collision_events.clear();
+    if !play_sound_er.is_empty() {
+        play_sound_er.clear();
         commands.spawn(AudioBundle {
             source: sound.clone(),
 

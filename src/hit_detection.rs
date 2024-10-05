@@ -16,13 +16,14 @@ pub fn update_system(
     mut commands: Commands,
     mut store: ResMut<Store>,
     image: Res<CrossImage>,
-    mut game_state_event_writer: EventWriter<GameStateEvent>,
+    mut game_state_ew: EventWriter<GameStateEvent>,
+    mut play_sound_ew: EventWriter<PlaySoundEvent>,
+
     alien_query: Query<(Entity, &Transform), With<Alien>>,
     mut lazer_query: Query<(&mut Lazer, &Transform)>,
     mut bunker_query: Query<(&mut TextureAtlas, Entity, &Transform), With<Bunker>>,
     alien_bullet_query: Query<(Entity, &Transform), With<AlienBullet>>,
     mut player_query: Query<&Transform, With<Player>>,
-    mut collision_events: EventWriter<CollisionEvent>,
 ) {
     // check if point:&Transform is in &target:Transform with size:Vec2
     #[inline(always)]
@@ -42,7 +43,7 @@ pub fn update_system(
         // hit player
         if in_rect(bullet_transform, player_transform, PLAYER_SIZE) {
             commands.entity(bullet_entity).despawn();
-            game_state_event_writer.send(GameStateEvent::LooseLife);
+            game_state_ew.send(GameStateEvent::LooseLife);
 
             spawn_explosion(
                 commands,
@@ -107,7 +108,7 @@ pub fn update_system(
         for (alien_entity, enemy_transform) in &alien_query {
             // Collision check
             if in_rect(lazer_transform, enemy_transform, ALIEN_SIZE) {
-                collision_events.send_default();
+                play_sound_ew.send_default();
                 commands.entity(alien_entity).despawn();
                 *lazer = Lazer::Idle;
                 store.aliens_killed += 1;
@@ -129,7 +130,7 @@ pub fn update_system(
                     store.aliens_killed = 0;
                     store.game_state = GameState::NewWave;
                     // timer.reset();
-                    game_state_event_writer.send(GameStateEvent::NewWave);
+                    game_state_ew.send(GameStateEvent::NewWave);
                 }
             }
         }
