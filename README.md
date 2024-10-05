@@ -56,22 +56,33 @@ The game uses the Bevy ECS to partition state and functionality. The initial des
 
 Technically, events (if used correctly) increase available parallelism among systems (as under the Bevy hood, the need for "locking" of shared resources are reduced). For this particular application, this is not any major concern but in a realistic game parallel execution is in general desirable.
 
-Events are currently declared along with their main `Resource`, so e.g., the `game_state` module defines the `GameStateEvent`. (Alternatively, all `Event` could be declared or re-exported by a separate module for convenience.) The `Events` are listed by `Component` below.
+Events are currently declared along with their main `Resource`, so e.g., the `game_state` module defines the `GameStateEvent`. (Alternatively, all `Event` could be declared or re-exported by a separate module for convenience.) 
 
-| Module            | Declared         | Used |
-| ------------------| ---------------- | ---- |
-| `alien`           | -                | -    |
-| `audio`           | `PlaySoundEvent` | -    |
-| `bunker`          | -                |      |
-| `common`          | -                |      |
-| `game_state`      | -                |      |
-| `hit_detection`   | -                |      |
-| `keyboard_input`  | -                |      |
-| `lazer`           | -                |      |
-| `lib`             | -                |      |
-| `main`            | -                |      |
-| `overlay`         | -                |      |
-| `player`          | -                |      |
+The events declared are summarized as follows:
+
+- `PlaySoundEvent`, play a one shot sample
+- `PlayMusicEvent`, control background music
+- `GameStateEvent`, request change of game state
+
+The `Events` are listed by `Component` below. 
+
+| Module            | Declared             | Reader               | Writer                |
+| ----------------- | -------------------- | -------------------- | --------------------- |
+| `alien`           | -                    | -                    |                       |
+| `audio`           | `PlaySoundEvent`     | `PlaySoundEvent`     |                       |
+|                   | `PlayMusicEvent`     | `PlayMusicEvent`     |                       |
+| `bunker`          | -                    | -                    |                       |
+| `common`          | -                    |                      |                       |
+| `game_state`      | `GameStateEvent`     | `GameStateEvent`     | `PlayMusicEvent`      |
+| `hit_detection`   | -                    |                      | `PlaySoundEvent`      |
+|                   |                      |                      | `GameStateEvent`      |
+| `keyboard_input`  | -                    |                      | `GameStateEvent`      |
+| `lazer`           | -                    |                      |                       |
+| `lib`             | -                    |                      |                       |
+| `main`            | -                    |                      |                       |
+| `overlay`         | -                    |                      |                       |
+| `player`          | -                    |                      |                       |
+
 
 
 ---

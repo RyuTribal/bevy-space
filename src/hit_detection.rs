@@ -108,7 +108,7 @@ pub fn update_system(
         for (alien_entity, enemy_transform) in &alien_query {
             // Collision check
             if in_rect(lazer_transform, enemy_transform, ALIEN_SIZE) {
-                play_sound_ew.send_default();
+                play_sound_ew.send(PlaySoundEvent::AlienHit);
                 commands.entity(alien_entity).despawn();
                 *lazer = Lazer::Idle;
                 store.aliens_killed += 1;

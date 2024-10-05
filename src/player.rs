@@ -25,6 +25,9 @@ pub fn update_system(time: Res<Time>, mut player_query: Query<(&Player, &mut Tra
     }
 }
 
+// it uses the shared game_state to determine if visible
+// alternatively one could declare an event to determine state changes
+// but the cost is low so we don't do that
 pub fn blink_update_system(
     store: Res<Store>,
     mut player_query: Query<&mut Visibility, With<Player>>,

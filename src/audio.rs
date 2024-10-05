@@ -2,22 +2,28 @@
 
 use bevy::prelude::*;
 
-#[derive(Event, Default)]
-pub struct PlaySoundEvent;
+/// Play a one shot sound sample
+#[derive(Event)]
+pub enum PlaySoundEvent {
+    AlienHit,
+}
 
+/// Control continuous playback
 #[derive(Event, Debug)]
 pub struct PlayMusicEvent(pub bool);
 
-#[derive(Resource, Deref)]
-pub struct AudioResoure(Handle<AudioSource>);
+#[derive(Resource, Clone)]
+pub struct AudioResource {
+    hit_sample: Handle<AudioSource>,
+}
 
 #[derive(Component)]
 pub struct Music;
 
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Sound
-    let collision_audio_source = asset_server.load("sounds/breakout_collision.ogg");
-    commands.insert_resource(AudioResoure(collision_audio_source));
+    let hit_sample = asset_server.load("sounds/breakout_collision.ogg");
+    commands.insert_resource(AudioResource { hit_sample });
 
     commands.spawn((
         Music,
@@ -31,13 +37,14 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 pub fn audio_hit_system(
     mut commands: Commands,
     mut play_sound_er: EventReader<PlaySoundEvent>,
-    sound: Res<AudioResoure>,
+    sound: Res<AudioResource>,
 ) {
-    if !play_sound_er.is_empty() {
-        play_sound_er.clear();
+    for event in play_sound_er.read() {
+        let sample = match event {
+            PlaySoundEvent::AlienHit => &sound.hit_sample,
+        };
         commands.spawn(AudioBundle {
-            source: sound.clone(),
-
+            source: sample.clone(), // this is ugly, why owned?
             settings: PlaybackSettings::DESPAWN,
         });
     }

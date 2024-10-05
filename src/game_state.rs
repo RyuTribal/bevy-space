@@ -93,12 +93,12 @@ pub enum GameStateEvent {
 }
 
 pub fn game_state_event_system(
-    mut game_state_event: EventReader<GameStateEvent>,
+    mut game_state_er: EventReader<GameStateEvent>,
     mut play_music_event_writer: EventWriter<PlayMusicEvent>,
     mut store: ResMut<Store>,
     mut timer: ResMut<TimerResource>,
 ) {
-    for event in game_state_event.read() {
+    for event in game_state_er.read() {
         println!("game state event received : {:?}", event);
         match event {
             GameStateEvent::PressPlay => {
