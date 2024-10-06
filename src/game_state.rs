@@ -102,8 +102,11 @@ pub fn game_state_event_system(
         debug!("game state event received : {:?}", event);
         match event {
             GameStateEvent::PressPlay => {
-                store.game_state = GameState::Start;
+                debug!("press play received");
                 play_music_event_writer.send(PlayMusicEvent(false));
+                store.reset();
+                store.lives = NR_LIVES;
+                store.game_state = GameState::Start;
                 timer.set(STATE_TRANSITION_START);
             }
             GameStateEvent::LooseLife => {
@@ -118,7 +121,18 @@ pub fn game_state_event_system(
                     }
                 }
             }
-            _ => {}
+            GameStateEvent::NewWave => {
+                store.game_state = GameState::NewWave;
+                store.aliens_killed = 0;
+                store.alien_speed = ALIENS_SPEED_START + store.wave as f32 * ALIENS_SPEED_WAVE;
+                store.wave += 1;
+                store.bullet_interval *= BULLET_INTERVAL_WAVE;
+                timer.set(STATE_TRANSITION_NEW_WAVE);
+            }
+            GameStateEvent::Info => {
+                debug!("info received");
+                store.show_state ^= true;
+            }
         }
     }
 }
@@ -168,13 +182,8 @@ pub fn update_system(
 
                 if store.game_state == GameState::Start {
                     debug!("--- Start ---");
-                    store.reset();
-                    store.lives = NR_LIVES;
                 } else {
                     debug!("--- New Wave ---");
-                    store.alien_speed = ALIENS_SPEED_START + store.wave as f32 * ALIENS_SPEED_WAVE;
-                    store.wave += 1;
-                    store.bullet_interval *= BULLET_INTERVAL_WAVE;
                 }
                 timer.set(STATE_TRANSITION_SPAWN);
                 GameState::PlayerSpawn(PLAYER_SPAWN_COUNTER)
@@ -183,14 +192,15 @@ pub fn update_system(
                 debug!("--- Player Spawn ---");
                 *p -= 1;
                 if *p == 0 {
+                    debug!("--- Play, pause timer ---");
+                    timer.pause();
                     GameState::Play
                 } else {
                     GameState::PlayerSpawn(*p)
                 }
             }
             GameState::Play => {
-                debug!("--- Play ---");
-                GameState::Play
+                panic!("timer should be paused, thus unreachable");
             }
         };
     }

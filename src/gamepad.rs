@@ -2,8 +2,8 @@ use crate::{common::*, game_state::*, lazer::FireLazerEvent, player::PlayerEvent
 use bevy::prelude::*;
 
 pub fn update_system(
-    mut fire_lazer_event_writer: EventWriter<FireLazerEvent>,
-    mut game_state_event_writer: EventWriter<GameStateEvent>,
+    mut fire_lazer_ew: EventWriter<FireLazerEvent>,
+    mut game_state_ew: EventWriter<GameStateEvent>,
     mut player_ew: EventWriter<PlayerEvent>,
 
     gamepads: Res<Gamepads>,
@@ -17,13 +17,18 @@ pub fn update_system(
             trace!("{:?} just pressed South", gamepad);
             match store.game_state {
                 GameState::InsertCoin | GameState::LeaderBoard => {
-                    game_state_event_writer.send(GameStateEvent::PressPlay);
+                    game_state_ew.send(GameStateEvent::PressPlay);
                 }
                 GameState::PlayerSpawn(_) | GameState::Play => {
-                    fire_lazer_event_writer.send(FireLazerEvent);
+                    fire_lazer_ew.send(FireLazerEvent);
                 }
                 _ => {}
             }
+        }
+
+        if button_inputs.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::North)) {
+            trace!("{:?} just pressed North", gamepad);
+            game_state_ew.send(GameStateEvent::Info);
         }
 
         let left_stick_x = axes

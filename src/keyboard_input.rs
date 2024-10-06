@@ -6,7 +6,7 @@ pub fn update_system(
     mut fire_lazer_ew: EventWriter<FireLazerEvent>,
     mut game_state_ew: EventWriter<GameStateEvent>,
     mut player_ew: EventWriter<PlayerEvent>,
-    mut store: ResMut<Store>,
+    store: Res<Store>,
 
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
@@ -24,7 +24,7 @@ pub fn update_system(
     }
 
     if keyboard_input.just_pressed(KeyCode::KeyI) {
-        store.show_state ^= true; // toggle
+        game_state_ew.send(GameStateEvent::Info);
     }
 
     match store.game_state {

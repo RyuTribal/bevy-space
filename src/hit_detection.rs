@@ -36,14 +36,38 @@ pub fn update_system(
 
     let commands = &mut commands;
 
+    // get lazer singleton
+    let (mut lazer, lazer_transform) = lazer_query.get_single_mut().unwrap();
+
     // get a player singleton
     let player_transform = player_query.single_mut();
     // alien bullets
     for (bullet_entity, bullet_transform) in &alien_bullet_query {
+        // hit player missile
+        if in_rect(bullet_transform, lazer_transform, (16.0, 32.0).into()) {
+            commands.entity(bullet_entity).despawn();
+            *lazer = Lazer::Idle;
+            spawn_explosion(
+                commands,
+                &image,
+                10,
+                (
+                    bullet_transform.translation.x,
+                    bullet_transform.translation.y,
+                )
+                    .into(),
+                150.0,
+                0.0,
+                (10.0, 10.0).into(),
+            );
+        } else
         // hit player
         if in_rect(bullet_transform, player_transform, PLAYER_SIZE) {
             commands.entity(bullet_entity).despawn();
             game_state_ew.send(GameStateEvent::LooseLife);
+            // to prevent the rare race-condition when outstanding missile would cause an extra life
+
+            *lazer = Lazer::Idle;
 
             spawn_explosion(
                 commands,
@@ -58,33 +82,31 @@ pub fn update_system(
                 0.0,
                 (10.0, 10.0).into(),
             );
-        }
-        // hit bunker?
-        for (bunker_atlas, bunker_entity, bunker_transform) in &mut bunker_query {
-            if in_rect(bullet_transform, bunker_transform, BUNKER_SIZE) {
-                commands.entity(bullet_entity).despawn();
-                if store.game_state == GameState::Play {
-                    hit_bunker(commands, bunker_entity, bunker_atlas);
+        } else {
+            // hit bunker?
+            for (bunker_atlas, bunker_entity, bunker_transform) in &mut bunker_query {
+                if in_rect(bullet_transform, bunker_transform, BUNKER_SIZE) {
+                    commands.entity(bullet_entity).despawn();
+                    if store.game_state == GameState::Play {
+                        hit_bunker(commands, bunker_entity, bunker_atlas);
+                    }
+                    spawn_explosion(
+                        commands,
+                        &image,
+                        10,
+                        (
+                            bullet_transform.translation.x,
+                            bullet_transform.translation.y,
+                        )
+                            .into(),
+                        150.0,
+                        0.0,
+                        (10.0, 10.0).into(),
+                    );
                 }
-                spawn_explosion(
-                    commands,
-                    &image,
-                    10,
-                    (
-                        bullet_transform.translation.x,
-                        bullet_transform.translation.y,
-                    )
-                        .into(),
-                    150.0,
-                    0.0,
-                    (10.0, 10.0).into(),
-                );
             }
         }
     }
-
-    // get lazer singleton
-    let (mut lazer, lazer_transform) = lazer_query.get_single_mut().unwrap();
 
     if let Lazer::Fired(_) = *lazer {
         // check bunkers
@@ -126,10 +148,7 @@ pub fn update_system(
                 );
 
                 if store.aliens_killed == ALIENS_TOTAL {
-                    debug!("-- new wave --");
-                    store.aliens_killed = 0;
-                    store.game_state = GameState::NewWave;
-                    // timer.reset();
+                    debug!("-- send new wave --");
                     game_state_ew.send(GameStateEvent::NewWave);
                 }
             }
