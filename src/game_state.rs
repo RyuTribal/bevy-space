@@ -159,7 +159,6 @@ pub fn update_system(
     }
 
     // state transition
-
     if timer.just_finished() {
         store.game_state = match store.game_state {
             GameState::GameOver => GameState::InsertCoin,
