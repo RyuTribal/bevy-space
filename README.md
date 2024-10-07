@@ -6,16 +6,23 @@ Small experiment to assess complexity of getting a simple thing done from scratc
 
 So far:
 
-- Basically a working game.
+- Basically a working game, with title screen, waves, extra lives, etc.
+- Both keyboard control and joy stick control, the latter plug and play at run-time. Tested only under arch linux (Manjaro) running KDE/wayland and Windows 10. No extra drivers or any other specifics, should work out the box, if not rise an issue.
+- Simple particle system for bullet traces and explosions on impact.
+- Audio (for now just a proof of concept with title music and an in game alien killed sample).
 
 Todo:
 
-- Mystery ship, possibly shooting homing missiles
-- Joy stick control, plug and play at run-time. Tested only under arch linux (Manjaro) running KDE/wayland. No extra drivers or any other specifics, should work out the box, if not rise an issue.
-- Particle system for bullet traces and explosions on impact
+- Mystery ship, possibly shooting homing missiles.
+- More alien types perhaps?
+- Varying speed of dropped bombs?
+- Weapon upgrades? Double cannon might be useful...
+- Leader board (for now its just a place holder). Potentially with on-line world wide scoring.
+- Whatever you like to see in an modernized version of the 1978 classic.
+
 - Stretch goals
-  - Screen projection shader to replicate CRT
-  - Screen blur and suitable noise effects to get low quality video, VCR like shaders
+  - Screen projection shader to replicate CRT.
+  - Screen blur and suitable noise effects to get low quality video, VCR like shaders.
 
 ## Tools used
 
@@ -42,15 +49,16 @@ All in all, after initial build, compile times are within seconds.
 ## How to play
 
 - Keyboard
+
   - `[Enter]` to insert coin (start game)
   - `[A]`/`[Left arrow]`, `[D]`/`[Right arrow]` to move
   - `[LeftShift]`, to slow down movement
   - `[Space]`/`[Up arrow]` to shoot
 
 - Gamepad
-  -  `X` on PS controller, `A` on X-Box to insert coin (start game)
-  - `LeftStick` to move, speed determined by analog stick reading. 
-  - `X` on PS controller, `A` on X-Box to insert coin (start game)
+  - `X` on PS controller, `A` on X-Box to insert coin (start game).
+  - `LeftStick` to move, speed determined by analog stick reading.
+  - `X` on PS controller, `A` on X-Box to shoot. Only one missile at the time.
 
 Hysteresis set at 0.01 to avoid drift, see `common.rs` for tuning.
 
@@ -64,7 +72,7 @@ The game uses the Bevy ECS to partition state and functionality. The initial des
 
 Technically, events (if used correctly) increase available parallelism among systems (as under the Bevy hood, the need for "locking" of shared resources are reduced). For this particular application, this is not any major concern but in a realistic game parallel execution is in general desirable.
 
-Events are currently declared along with their main `Resource`, so e.g., the `game_state` module defines the `GameStateEvent`. (Alternatively, all `Event` could be declared or re-exported by a separate module for convenience.) 
+Events are currently declared along with their main `Resource`, so e.g., the `game_state` module defines the `GameStateEvent`. (Alternatively, all `Event` could be declared or re-exported by a separate module for convenience.)
 
 The events declared are summarized as follows:
 
@@ -72,30 +80,31 @@ The events declared are summarized as follows:
 - `PlayMusicEvent`, control background music
 - `GameStateEvent`, request change of game state
 
-The `Events` are listed by `Component` below. 
+The `Events` are listed by `Component` below.
 
-| Module            | Declared             | Reader               | Writer                |
-| ----------------- | -------------------- | -------------------- | --------------------- |
-| `alien`           | -                    | -                    | -                     |
-| `audio`           | `PlaySoundEvent`     | X                    | -                     |
-|                   | `PlayMusicEvent`     | X                    | -                     |
-| `bunker`          | -                    | -                    | -                     |
-| `common`          | -                    | -                    | -                     |
-| `game_state`      | `GameStateEvent`     | X                    | `PlayMusicEvent`      |
-| `hit_detection`   | -                    | -                    | `PlaySoundEvent`      |
-|                   | -                    | -                    | `GameStateEvent`      |
-| `keyboard_input`  | -                    | -                    | `FireLazerEvent`      |
-|                   | -                    | -                    | `PlayerEvent`         |
-|                   | -                    | -                    | `GameStateEvent`      |
-| `gamepad`         | -                    | -                    | `FireLazerEvent`      |
-|                   | -                    | -                    | `PlayerEvent`         |
-|                   | -                    | -                    | `GameStateEvent`      |
-| `lazer`           | `FireLazerEvent`     | X                    | -                     |
-| `lib`             | -                    | -                    | -                     |
-| `main`            | -                    | -                    | -                     |
-| `overlay`         | -                    | -                    | -                     |
-| `player`          | `PlayerEvent`        | X                    | -                     |
-| 
+| Module           | Declared         | Reader | Writer           |
+| ---------------- | ---------------- | ------ | ---------------- |
+| `alien`          | -                | -      | -                |
+| `audio`          | `PlaySoundEvent` | X      | -                |
+|                  | `PlayMusicEvent` | X      | -                |
+| `bunker`         | -                | -      | -                |
+| `common`         | -                | -      | -                |
+| `game_state`     | `GameStateEvent` | X      | `PlayMusicEvent` |
+| `hit_detection`  | -                | -      | `PlaySoundEvent` |
+|                  | -                | -      | `GameStateEvent` |
+| `keyboard_input` | -                | -      | `FireLazerEvent` |
+|                  | -                | -      | `PlayerEvent`    |
+|                  | -                | -      | `GameStateEvent` |
+| `gamepad`        | -                | -      | `FireLazerEvent` |
+|                  | -                | -      | `PlayerEvent`    |
+|                  | -                | -      | `GameStateEvent` |
+| `lazer`          | `FireLazerEvent` | X      | -                |
+| `lib`            | -                | -      | -                |
+| `main`           | -                | -      | -                |
+| `overlay`        | -                | -      | -                |
+| `player`         | `PlayerEvent`    | X      | -                |
+
+|
 
 ## Known Bugs
 
